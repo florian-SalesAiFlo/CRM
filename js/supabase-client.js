@@ -26,7 +26,15 @@ export function initSupabase() {
   // window.supabase est exposé globalement par le bundle UMD.
   _client = window.supabase.createClient(
     SUPABASE_CONFIG.url,
-    SUPABASE_CONFIG.anonKey
+    SUPABASE_CONFIG.anonKey,
+    {
+      auth: {
+        persistSession: true,
+        storageKey: 'crm-m2bpo-auth',
+        autoRefreshToken: true,
+        detectSessionInUrl: false
+      }
+    }
   );
 
   return _client;
