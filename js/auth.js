@@ -17,7 +17,7 @@ import { initSupabase } from './supabase-client.js';
 // ── Constantes ────────────────────────────────────────────
 
 const LOGIN_ROUTE      = '/login';
-const AUTH_TIMEOUT_MS  = 3000;
+const AUTH_TIMEOUT_MS  = 8000;
 const STORAGE_KEY      = 'crm-m2bpo-auth';
 
 // ── État module ───────────────────────────────────────────
@@ -64,7 +64,7 @@ export function initAuth() {
 
 /**
  * Vérifie si une session active existe.
- * Wrappe getSession() dans un timeout de 3s.
+ * Wrappe getSession() dans un timeout de 8s.
  * Si timeout ou erreur (ex: LockManager bloqué, localStorage corrompu),
  * vide les clés Supabase et retourne false — jamais de blocage.
  * @returns {Promise<boolean>}
