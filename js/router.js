@@ -96,21 +96,8 @@ async function navigate(path) {
   const { pattern, params } = resolved;
   const route = ROUTES[pattern];
 
-  if (route.auth) {
-    try {
-      const authenticated = await Promise.race([
-        isAuthenticated(),
-        new Promise(resolve => setTimeout(() => resolve(false), 3000))
-      ]);
-      if (!authenticated) {
-        window.location.hash = LOGIN_ROUTE;
-        return;
-      }
-    } catch {
-      window.location.hash = LOGIN_ROUTE;
-      return;
-    }
-  }
+  // Auth désactivée temporairement — accès direct à toutes les pages
+  // if (route.auth) { ... }
 
  await loadPage(route.page, params);
   await initPageScripts(pattern);
