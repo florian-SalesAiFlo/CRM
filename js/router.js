@@ -112,9 +112,10 @@ async function navigate(path) {
     }
   }
 
-  await loadPage(route.page, params);
+ await loadPage(route.page, params);
   await initPageScripts(pattern);
   updateSidebarActive(path);
+  autoCollapseSidebar();
 }
 
 /**
@@ -277,11 +278,6 @@ async function initProspectListPage() {
  * Prospect detail page : initialise la fiche détail.
  */
 async function initProspectDetailPage() {
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar && !sidebar.classList.contains('collapsed')) {
-    sidebar.classList.add('collapsed');
-    document.body.classList.add('sidebar-collapsed');
-  }
   const { initProspectDetail } = await import('./prospect-detail.js');
   initProspectDetail();
 }
@@ -307,6 +303,21 @@ function toggleSidebar() {
   if (!sidebar) return;
   sidebar.classList.toggle('collapsed');
   document.body.classList.toggle('sidebar-collapsed');
+}
+
+function autoCollapseSidebar() {
+  const sidebar = document.getElementById(SIDEBAR_ID);
+  if (!sidebar || sidebar.classList.contains('collapsed')) return;
+  let hovered = false;
+  const onEnter = () => { hovered = true; };
+  sidebar.addEventListener('mouseenter', onEnter, { once: true });
+  setTimeout(() => {
+    if (!hovered) {
+      sidebar.classList.add('collapsed');
+      document.body.classList.add('sidebar-collapsed');
+    }
+    sidebar.removeEventListener('mouseenter', onEnter);
+  }, 3000);
 }
 
 /**
