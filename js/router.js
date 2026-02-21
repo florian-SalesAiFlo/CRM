@@ -1,5 +1,5 @@
 /* =======================================================
-   router.js — SPA hash-based routing CRM M2BPO
+   router.js — SPA hash-based routing CRM Cosmos
    Gère : navigation, auth guard, sidebar active state.
    Init : window.__uiPanels, initSupabase(), initUIComponents()
    ======================================================= */
@@ -34,6 +34,11 @@ let _supabase = null;
 /**
  * Point d'entrée du router. Appelé une seule fois au chargement.
  */
+export async function initRouter() {
+  _supabase = initSupabase();
+  initAuth();
+  initUIComponents();
+
   // Auto-login silencieux (dev mode — auth guard désactivé)
   try {
     await _supabase.auth.signInWithPassword({
@@ -85,7 +90,7 @@ function resolveRoute(path) {
 // ── Navigation ────────────────────────────────────────────
 
 /**
- * Navigue vers une route. Vérifie l'auth si nécessaire.
+ * Navigue vers une route.
  * @param {string} path
  */
 async function navigate(path) {
@@ -102,7 +107,7 @@ async function navigate(path) {
   // Auth désactivée temporairement — accès direct à toutes les pages
   // if (route.auth) { ... }
 
- await loadPage(route.page, params);
+  await loadPage(route.page, params);
   await initPageScripts(pattern);
   updateSidebarActive(path);
   autoCollapseSidebar();
@@ -145,11 +150,17 @@ function renderErrorPage(pageUrl) {
   `.trim();
 }
 
+// ── Hash listener ─────────────────────────────────────────
+
+function listenHashChange() {
+  window.addEventListener('hashchange', () => navigate(getCurrentRoute()));
+}
+
 // ── Page scripts (remplace les <script> dans les partials) ──
 
 /**
  * Initialise les scripts spécifiques à chaque page après injection HTML.
- * @param {string} pattern - Le pattern de route matché
+ * @param {string} pattern
  */
 async function initPageScripts(pattern) {
   switch (pattern) {
@@ -247,7 +258,7 @@ function initLoginPage() {
 }
 
 /**
- * Dashboard page : initialise les KPIs et le tableau activités.
+ * Dashboard page.
  */
 async function initDashboardPage() {
   const { initDashboard } = await import('./dashboard.js');
@@ -255,7 +266,7 @@ async function initDashboardPage() {
 }
 
 /**
- * Prospect list page : initialise la liste + formulaire création.
+ * Prospect list page.
  */
 async function initProspectListPage() {
   const { initProspectList } = await import('./prospects.js');
@@ -265,17 +276,11 @@ async function initProspectListPage() {
 }
 
 /**
- * Prospect detail page : initialise la fiche détail.
+ * Prospect detail page.
  */
 async function initProspectDetailPage() {
   const { initProspectDetail } = await import('./prospect-detail.js');
   initProspectDetail();
-}
-
-// ── Hash listener ─────────────────────────────────────────
-
-function listenHashChange() {
-  window.addEventListener('hashchange', () => navigate(getCurrentRoute()));
 }
 
 // ── Sidebar ───────────────────────────────────────────────
