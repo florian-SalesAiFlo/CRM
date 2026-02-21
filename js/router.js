@@ -43,7 +43,7 @@ export async function initRouter() {
   try {
     await _supabase.auth.signInWithPassword({
       email: 'florian@salesaiflo.com',
-      password: 'Test1234#'
+      password: 'Test1234'
     });
   } catch {}
 
