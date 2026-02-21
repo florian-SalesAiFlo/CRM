@@ -295,7 +295,22 @@ function initSidebar() {
   if (toggle) toggle.addEventListener('click', toggleSidebar);
 
   const sidebar = document.getElementById(SIDEBAR_ID);
-  if (sidebar) sidebar.addEventListener('click', handleSidebarClick);
+  if (!sidebar) return;
+  sidebar.addEventListener('click', handleSidebarClick);
+
+  sidebar.addEventListener('mouseenter', () => {
+    if (sidebar.classList.contains('collapsed')) {
+      sidebar.classList.remove('collapsed');
+      document.body.classList.remove('sidebar-collapsed');
+    }
+  });
+
+  sidebar.addEventListener('mouseleave', () => {
+    if (!sidebar.classList.contains('collapsed')) {
+      sidebar.classList.add('collapsed');
+      document.body.classList.add('sidebar-collapsed');
+    }
+  });
 }
 
 function toggleSidebar() {
