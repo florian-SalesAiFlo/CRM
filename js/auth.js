@@ -216,6 +216,12 @@ function clearCorruptedSession() {
         localStorage.removeItem(key);
       }
     });
+    sessionStorage.clear();
+    if (indexedDB.databases) {
+      indexedDB.databases().then(dbs => 
+        dbs.forEach(db => indexedDB.deleteDatabase(db.name))
+      ).catch(() => {});
+    }
   } catch {
     // localStorage peut être inaccessible en mode privé strict — on ignore
   }
