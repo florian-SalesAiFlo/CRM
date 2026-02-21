@@ -97,11 +97,16 @@ function renderHeader(p) {
     });
   }
 
-  // Bouton Modifier (stub)
-  document.getElementById('btn-edit-prospect')?.addEventListener('click', () => {
-    console.log('[prospect-detail] Modifier — à implémenter');
-    toast('Édition disponible dans la prochaine version.', 'info');
-  });
+  // Bouton Modifier → édition inline lazy
+  const editBtn = document.getElementById('btn-edit-prospect');
+  if (editBtn) {
+    const fresh = editBtn.cloneNode(true);
+    editBtn.replaceWith(fresh);
+    fresh.addEventListener('click', async () => {
+      const { initProspectEdit } = await import('./prospect-edit.js');
+      initProspectEdit(_prospect, () => loadProspect(_prospect.id));
+    });
+  }
 
   // Commercial
   const commEl = document.getElementById('detail-commercial-label');
@@ -224,34 +229,23 @@ function renderRappels(rappels) {
 // ── Panels boutons ────────────────────────────────────────
 
 function bindPanelButtons(prospectId) {
-  document.getElementById('btn-new-contact')?.addEventListener('click', () => {
-    document.getElementById('panel-contact-body').innerHTML = renderContactForm();
+  document.getElementById('btn-new-contact')?.addEventListener('click', async () => {
+    const { initContactPanel } = await import('./contact-form.js');
+    initContactPanel(prospectId, () => loadProspect(prospectId));
     openPanel('panel-new-contact');
   });
 
-  document.getElementById('btn-new-interaction')?.addEventListener('click', () => {
-    document.getElementById('panel-interaction-body').innerHTML = renderInteractionForm();
+  document.getElementById('btn-new-interaction')?.addEventListener('click', async () => {
+    const { initInteractionPanel } = await import('./interaction-form.js');
+    initInteractionPanel(prospectId, () => loadProspect(prospectId));
     openPanel('panel-new-interaction');
   });
 
-  document.getElementById('btn-new-rappel')?.addEventListener('click', () => {
-    document.getElementById('panel-rappel-body').innerHTML = renderRappelForm();
+  document.getElementById('btn-new-rappel')?.addEventListener('click', async () => {
+    const { initRappelPanel } = await import('./rappel-form.js');
+    initRappelPanel(prospectId, () => loadProspect(prospectId));
     openPanel('panel-new-rappel');
   });
-}
-
-// ── Forms HTML (stubs — soumission dans story suivante) ──
-
-function renderContactForm() {
-  return `<p style="color:var(--color-text-tertiary);font-size:var(--text-sm)">Formulaire de création de contact — disponible dans la prochaine version.</p>`;
-}
-
-function renderInteractionForm() {
-  return `<p style="color:var(--color-text-tertiary);font-size:var(--text-sm)">Formulaire d'interaction — disponible dans la prochaine version.</p>`;
-}
-
-function renderRappelForm() {
-  return `<p style="color:var(--color-text-tertiary);font-size:var(--text-sm)">Formulaire de rappel — disponible dans la prochaine version.</p>`;
 }
 
 // ── Utils ─────────────────────────────────────────────────
