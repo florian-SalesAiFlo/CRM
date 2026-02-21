@@ -277,6 +277,11 @@ async function initProspectListPage() {
  * Prospect detail page : initialise la fiche détail.
  */
 async function initProspectDetailPage() {
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar && !sidebar.classList.contains('collapsed')) {
+    sidebar.classList.add('collapsed');
+    document.body.classList.add('sidebar-collapsed');
+  }
   const { initProspectDetail } = await import('./prospect-detail.js');
   initProspectDetail();
 }
