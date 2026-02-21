@@ -110,7 +110,26 @@
   <div class="slide-overlay" id="slide-overlay"></div>
 
   <!-- ======================== MODULES JS ======================== -->
-  <script type="module">
+<script>
+  // Pre-clean: vider les locks Supabase résiduels au chargement
+  try {
+    if (!sessionStorage.getItem('cosmos-clean')) {
+      sessionStorage.setItem('cosmos-clean', '1');
+      indexedDB.databases && indexedDB.databases().then(dbs => 
+        dbs.forEach(db => indexedDB.deleteDatabase(db.name))
+      ).catch(() => {});
+    }
+  } catch {}
+</script>
+```
+
+Ça nettoie IndexedDB une seule fois par session navigateur (pas à chaque navigation). Push et teste.
+```
+cd C:\Users\flori\Desktop\CRM
+git add .
+git commit -m "fix: pre-clean IndexedDB on first load"
+git push  
+<script type="module">
     import { initRouter } from './js/router.js';
     import { signOut }    from './js/supabase-client.js';
 
