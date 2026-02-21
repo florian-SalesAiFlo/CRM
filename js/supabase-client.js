@@ -34,8 +34,7 @@ export function initSupabase() {
         storageKey: 'crm-m2bpo-auth',
         autoRefreshToken: true,
         detectSessionInUrl: false,
-        flowType: 'implicit',
-        lock: 'no-op'
+        flowType: 'implicit'
       }
     }
   );
