@@ -36,7 +36,7 @@ function renderForm() {
 
       <div class="pf-field">
         <label class="pf-label" for="fc-role">Rôle</label>
-        <select class="pf-input" id="fc-role" name="role_employe">
+        <select class="pf-input" id="fc-role" name="role">
           <option value="">— Sélectionner —</option>
           ${roleOpts}
         </select>
@@ -122,7 +122,7 @@ export function initContactPanel(prospectId, onCreated) {
 
     const payload = {
       nom,
-      role_employe: form.querySelector('#fc-role')?.value      || null,
+      role: form.querySelector('#fc-role')?.value      || null,
       email:        form.querySelector('#fc-email')?.value.trim()    || null,
       telephone:    form.querySelector('#fc-telephone')?.value.trim()|| null,
     };
