@@ -30,14 +30,16 @@ export async function initRouter() {
   initUIComponents();
   window.__uiPanels = { openPanel, closePanels, closeModal };
 
-  // Auto-login silencieux (dev mode)
-  _supabase.auth.signInWithPassword({
-    email: 'florian@salesaiflo.com',
-    password: 'Test1234'
-  }).then(() => {
-    // Re-naviguer après login pour charger les données
-    navigate(getCurrentRoute());
-  }).catch(() => {});
+// Auto-login silencieux (dev mode)
+  try {
+    await Promise.race([
+      _supabase.auth.signInWithPassword({
+        email: 'florian@salesaiflo.com',
+        password: 'Test1234'
+      }),
+      new Promise(r => setTimeout(r, 5000))
+    ]);
+  } catch {}
 
   initSidebar();
   listenHashChange();
