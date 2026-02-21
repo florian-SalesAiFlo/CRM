@@ -24,7 +24,8 @@ export function initSupabase() {
 
   // Le SDK Supabase est chargé en <script> CDN dans index.html.
   // window.supabase est exposé globalement par le bundle UMD.
-_client = window.supabase.createClient(
+  // ⚠️ NE PAS MODIFIER ce bloc createClient — options auth critiques.
+  _client = window.supabase.createClient(
     SUPABASE_CONFIG.url,
     SUPABASE_CONFIG.anonKey,
     {
@@ -38,14 +39,6 @@ _client = window.supabase.createClient(
       }
     }
   );
-```
-
-Sauvegarde, puis :
-```
-cd C:\Users\flori\Desktop\CRM
-git add .
-git commit -m "fix: restore auth options + disable LockManager"
-git push
 
   return _client;
 }
@@ -64,12 +57,12 @@ function getClient() {
 /**
  * Récupère la liste des prospects avec filtres optionnels.
  * @param {object} [filters]
- * @param {string} [filters.statut]          - valeur statut (ex: 'defini')
- * @param {string} [filters.metier]          - valeur métier
- * @param {string} [filters.commercial_id]   - UUID du commercial
- * @param {string} [filters.search]          - recherche textuelle sur nom/siret
- * @param {number} [filters.limit]           - nb de résultats (défaut 100)
- * @param {number} [filters.offset]          - pagination
+ * @param {string} [filters.statut]
+ * @param {string} [filters.metier]
+ * @param {string} [filters.commercial_id]
+ * @param {string} [filters.search]
+ * @param {number} [filters.limit]
+ * @param {number} [filters.offset]
  * @returns {Promise<{data: Array, error: object|null}>}
  */
 export async function fetchProspects(filters = {}) {
@@ -90,10 +83,9 @@ export async function fetchProspects(filters = {}) {
   return query;
 }
 
-
 /**
  * Récupère les prospects avec stats interactions pour la vue liste.
- * @param {object} [filters] - statut, metier, retour, commercial_id, limit, offset
+ * @param {object} [filters]
  * @returns {Promise<{data: Array, error: object|null}>}
  */
 export async function fetchProspectsWithStats(filters = {}) {
@@ -116,7 +108,7 @@ export async function fetchProspectsWithStats(filters = {}) {
 
 /**
  * Récupère un prospect par son ID avec ses contacts et stats.
- * @param {string} id - UUID du prospect
+ * @param {string} id
  * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function fetchProspectById(id) {
@@ -137,7 +129,7 @@ export async function fetchProspectById(id) {
 
 /**
  * Crée un nouveau prospect.
- * @param {object} data - Champs du prospect (nom obligatoire)
+ * @param {object} data
  * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function createProspect(data) {
@@ -147,8 +139,8 @@ export async function createProspect(data) {
 
 /**
  * Met à jour un prospect existant.
- * @param {string} id    - UUID du prospect
- * @param {object} data  - Champs à mettre à jour
+ * @param {string} id
+ * @param {object} data
  * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function updateProspect(id, data) {
@@ -165,10 +157,9 @@ export async function signOut() {
   await db.auth.signOut();
 }
 
-
 /**
- * Supprime un prospect (cascade sur contacts, interactions, rappels).
- * @param {string} id - UUID du prospect
+ * Supprime un prospect.
+ * @param {string} id
  * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function deleteProspect(id) {
@@ -195,7 +186,7 @@ export async function fetchContacts(prospectId) {
 /**
  * Crée un contact rattaché à un prospect.
  * @param {string} prospectId
- * @param {object} data - { nom, role_employe?, email?, telephone? }
+ * @param {object} data
  * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function createContact(prospectId, data) {
@@ -227,7 +218,7 @@ export async function deleteContact(id) {
 // ── Interactions ──────────────────────────────────────────
 
 /**
- * Récupère les interactions d'un prospect, triées du plus récent.
+ * Récupère les interactions d'un prospect.
  * @param {string} prospectId
  * @param {number} [limit]
  * @returns {Promise<{data: Array, error: object|null}>}
@@ -245,12 +236,12 @@ export async function fetchInteractions(prospectId, limit = 50) {
 /**
  * Crée une interaction dans la timeline.
  * @param {string} prospectId
- * @param {object} data - { canal, contenu, destinataire? }
+ * @param {object} data
  * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function createInteraction(prospectId, data) {
-  const db    = getClient();
-  const user  = await db.auth.getUser();
+  const db   = getClient();
+  const user = await db.auth.getUser();
 
   return db.from('interactions').insert({
     ...data,
@@ -262,11 +253,8 @@ export async function createInteraction(prospectId, data) {
 // ── Rappels ───────────────────────────────────────────────
 
 /**
- * Récupère les rappels d'un prospect ou de l'utilisateur courant.
+ * Récupère les rappels avec filtres.
  * @param {object} [filters]
- * @param {string} [filters.prospect_id] - filtre par prospect
- * @param {string} [filters.statut]      - filtre par statut (ex: 'planifie')
- * @param {string} [filters.assigne_a]   - filtre par assignation (UUID)
  * @returns {Promise<{data: Array, error: object|null}>}
  */
 export async function fetchRappels(filters = {}) {
@@ -286,8 +274,7 @@ export async function fetchRappels(filters = {}) {
 }
 
 /**
- * Récupère les rappels planifiés à traiter aujourd'hui ou en retard (tous prospects).
- * Utilisé pour la vue globale "Rappels du jour".
+ * Récupère les rappels du jour ou en retard.
  * @returns {Promise<{data: Array, error: object|null}>}
  */
 export async function fetchRappelsDuJour() {
@@ -304,7 +291,7 @@ export async function fetchRappelsDuJour() {
 /**
  * Crée un rappel pour un prospect.
  * @param {string} prospectId
- * @param {object} data - { date_rappel, motif, commentaire?, assigne_a? }
+ * @param {object} data
  * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function createRappel(prospectId, data) {
@@ -317,7 +304,6 @@ export async function createRappel(prospectId, data) {
 
 /**
  * Récupère les N interactions les plus récentes (tous prospects).
- * Utilisé par le dashboard pour le tableau d'activités.
  * @param {number} [limit]
  * @returns {Promise<{data: Array, error: object|null}>}
  */
@@ -331,7 +317,7 @@ export async function fetchRecentInteractions(limit = 10) {
 }
 
 /**
- * Met à jour un rappel (statut, date, motif…).
+ * Met à jour un rappel.
  * @param {string} id
  * @param {object} data
  * @returns {Promise<{data: object|null, error: object|null}>}
