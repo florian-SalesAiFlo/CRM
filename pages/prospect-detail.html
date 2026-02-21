@@ -35,31 +35,36 @@
 <!-- ── Page ─────────────────────────────────────────────── -->
 <div class="detail-layout" id="detail-root">
 
-  <!-- Loading state -->
-  <div id="detail-loading" class="detail-loading" aria-live="polite">
-    <div class="skel skel-title"></div>
-    <div class="skel skel-block"></div>
-  </div>
+  <!-- Loading state invisible — le header est toujours visible -->
+  <div id="detail-loading" aria-live="polite" hidden></div>
 
-  <!-- Contenu (masqué pendant le chargement) -->
-  <div id="detail-content" hidden>
+  <!-- Contenu affiché immédiatement, rempli par JS après fetch -->
+  <div id="detail-content">
 
-    <!-- ── Header ─────────────────────────────────────── -->
-    <header class="detail-header">
-      <div class="detail-header-left">
+    <!-- ── Header condensé ───────────────────────────── -->
+    <header class="detail-header-condensed">
+      <div class="dhc-left">
         <button class="btn btn-ghost btn-back" id="btn-back" aria-label="Retour à la liste">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
           Prospects
         </button>
-        <div class="detail-title-row">
-          <h1 class="detail-title" id="detail-nom">—</h1>
-          <div class="detail-badges" id="detail-badges"></div>
-        </div>
+        <h1 class="detail-title" id="detail-nom">—</h1>
+        <div class="detail-badges" id="detail-badges"></div>
       </div>
-      <div class="detail-header-right">
-        <span class="detail-commercial" id="detail-commercial-label"></span>
+
+      <div class="dhc-center" id="dhc-center">
+        <span class="dhc-item" id="dhc-siret" title="SIRET — cliquer pour copier" style="cursor:pointer">🏢 —</span>
+        <span class="dhc-item" id="dhc-metier">🔧 —</span>
+        <span class="dhc-item" id="dhc-email">✉ —</span>
+        <span class="dhc-item" id="dhc-phone">📞 —</span>
+        <span class="dhc-item" id="dhc-web">🌐 —</span>
+      </div>
+
+      <div class="dhc-right">
+        <span class="dhc-commercial" id="detail-commercial-label"></span>
+        <button class="btn btn-sm btn-primary" id="btn-edit-prospect">Modifier</button>
       </div>
     </header>
 
@@ -160,26 +165,36 @@
     background: var(--color-bg);
   }
 
-  .detail-loading {
-    padding: var(--space-8);
+  /* ── Header condensé ── */
+  .detail-header-condensed {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  /* ── Header ── */
-  .detail-header {
-    display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    padding: var(--space-4) var(--space-6);
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-5);
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
-    gap: var(--space-4);
+    flex-wrap: wrap;
+    min-height: 52px;
   }
-  .detail-header-left { display: flex; flex-direction: column; gap: var(--space-2); }
-  .detail-header-right { display: flex; align-items: center; gap: var(--space-3); flex-shrink: 0; }
+  .dhc-left {
+    display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+  }
+  .dhc-center {
+    display: flex; align-items: center; gap: var(--space-4);
+    flex-wrap: wrap; flex: 1; justify-content: center;
+  }
+  .dhc-item {
+    font-size: var(--text-sm); color: var(--color-text-secondary); white-space: nowrap;
+  }
+  .dhc-item[id="dhc-siret"]:hover { color: var(--color-primary); }
+  .dhc-right {
+    display: flex; align-items: center; gap: var(--space-3);
+  }
+  .dhc-commercial {
+    font-size: var(--text-sm); color: var(--color-text-secondary);
+  }
 
   .btn-back {
     display: inline-flex; align-items: center; gap: var(--space-1);
@@ -188,17 +203,11 @@
   }
   .btn-back svg { width: 16px; height: 16px; }
 
-  .detail-title-row {
-    display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
-  }
   .detail-title {
-    font-size: var(--text-2xl); font-weight: 700;
+    font-size: var(--text-xl); font-weight: 700;
     letter-spacing: -.03em; color: var(--color-text);
   }
   .detail-badges { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-  .detail-commercial {
-    font-size: var(--text-sm); color: var(--color-text-secondary);
-  }
 
   /* ── Body layout ── */
   .detail-body {

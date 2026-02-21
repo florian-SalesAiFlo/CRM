@@ -49,9 +49,7 @@ async function loadProspect(id) {
 
   _prospect = prospect;
 
-  document.getElementById('detail-loading').hidden = true;
-  document.getElementById('detail-content').hidden = false;
-
+  // Plus de masquage/démasquage : le contenu est visible dès le départ
   renderHeader(prospect);
   renderInfoGrid(prospect);
   renderContacts(prospect.contacts ?? []);
@@ -60,11 +58,16 @@ async function loadProspect(id) {
   bindPanelButtons(id);
 }
 
-// ── Header ────────────────────────────────────────────────
+// ── Header condensé ───────────────────────────────────────
 
 function renderHeader(p) {
-  const nomEl = document.getElementById('detail-nom');
-  if (nomEl) nomEl.textContent = p.nom ?? '—';
+  const fill = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || '—';
+  };
+
+  // Nom + badges statut/retour
+  fill('detail-nom', p.nom);
 
   const badgesEl = document.getElementById('detail-badges');
   if (badgesEl) {
@@ -76,9 +79,34 @@ function renderHeader(p) {
     ].join('');
   }
 
+  // Infos rapides DHC
+  const metierLabel = METIERS.find(m => m.value === p.metier)?.label ?? p.metier ?? null;
+  fill('dhc-siret',  p.siret ? `🏢 ${formatSiret(p.siret)}` : null);
+  fill('dhc-metier', metierLabel ? `🔧 ${metierLabel}` : null);
+  fill('dhc-email',  p.email    ? `✉ ${p.email}`    : null);
+  fill('dhc-phone',  p.telephone ? `📞 ${p.telephone}` : null);
+  fill('dhc-web',    p.site_web ? `🌐 ${p.site_web}` : null);
+
+  // SIRET cliquable → copie presse-papier
+  const siretEl = document.getElementById('dhc-siret');
+  if (siretEl && p.siret) {
+    siretEl.addEventListener('click', () => {
+      navigator.clipboard.writeText(p.siret.replace(/\s/g, ''))
+        .then(() => toast('SIRET copié.', 'success'))
+        .catch(() => toast('Copie non supportée.', 'error'));
+    });
+  }
+
+  // Bouton Modifier (stub)
+  document.getElementById('btn-edit-prospect')?.addEventListener('click', () => {
+    console.log('[prospect-detail] Modifier — à implémenter');
+    toast('Édition disponible dans la prochaine version.', 'info');
+  });
+
+  // Commercial
   const commEl = document.getElementById('detail-commercial-label');
   if (commEl && p.profiles?.nom) {
-    commEl.textContent = `Commercial : ${p.profiles.nom}`;
+    commEl.textContent = p.profiles.nom;
   }
 }
 

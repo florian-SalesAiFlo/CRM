@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cosmos</title>
+  <title>CRM M2BPO</title>
 
   <!-- ── Google Fonts ─────────────────────────────────── -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,28 +16,32 @@
   <link rel="stylesheet" href="css/layout.css">
 
   <!-- ── Supabase SDK (UMD — expose window.supabase) ───── -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
   <!-- ======================== SIDEBAR ======================== -->
   <aside class="sidebar" id="sidebar" aria-label="Menu principal">
 
-    <!-- Toggle collapse -->
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="14" cy="14" r="3" fill="var(--color-primary)"/>
+        <ellipse cx="14" cy="14" rx="10" ry="5" stroke="var(--color-primary)" stroke-width="0.8" opacity="0.4" transform="rotate(-20 14 14)"/>
+        <ellipse cx="14" cy="14" rx="12" ry="4" stroke="var(--color-primary)" stroke-width="0.6" opacity="0.3" transform="rotate(30 14 14)"/>
+        <circle cx="23" cy="11" r="1.2" fill="var(--color-primary)" opacity="0.7"/>
+        <circle cx="6"  cy="17" r="1"   fill="var(--color-primary)" opacity="0.5"/>
+        <circle cx="18" cy="20" r="0.8" fill="var(--color-primary)" opacity="0.4"/>
+      </svg>
+      <span>M2BPO</span>
+    </div>
+
+    <!-- Toggle collapse (sous le brand) -->
     <button class="sidebar-toggle" id="sidebar-toggle" title="Réduire le menu" aria-label="Réduire le menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <polyline points="15 18 9 12 15 6"/>
       </svg>
     </button>
-
-    <!-- Brand -->
-    <div class="sidebar-brand">
-      <svg viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <rect width="28" height="28" rx="6" fill="#2d5be3"/>
-        <path d="M7 14l5 5 9-10" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span>Cosmos</span>
-    </div>
 
     <!-- Search -->
     <div class="sidebar-search">
@@ -110,24 +114,24 @@
   <div class="slide-overlay" id="slide-overlay"></div>
 
   <!-- ======================== MODULES JS ======================== -->
-<script>
-  // Pre-clean: vider les locks Supabase résiduels au chargement
-  try {
-    if (!sessionStorage.getItem('cosmos-clean')) {
-      sessionStorage.setItem('cosmos-clean', '1');
-      indexedDB.databases && indexedDB.databases().then(dbs => 
-        dbs.forEach(db => indexedDB.deleteDatabase(db.name))
-      ).catch(() => {});
-    }
-  } catch {}
-</script>
-<script type="module">
+  <!--
+    Chargement ES modules — ordre résolu automatiquement par les imports.
+    Le seul point d'entrée est router.js via initRouter().
+
+    Dépendances (résolues à l'import) :
+      router.js ← supabase-client.js ← config.js
+      router.js ← ui-components.js  ← config.js
+      router.js ← ui-panels.js
+  -->
+  <script type="module">
     import { initRouter } from './js/router.js';
     import { signOut }    from './js/supabase-client.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
+      // Init complète de l'app (Supabase, UI, routing)
       await initRouter();
 
+      // Déconnexion sidebar
       document.getElementById('sidebar-logout')
         ?.addEventListener('click', async (e) => {
           e.preventDefault();
