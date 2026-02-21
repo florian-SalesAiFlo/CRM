@@ -34,10 +34,13 @@ let _supabase = null;
 /**
  * Point d'entrée du router. Appelé une seule fois au chargement.
  */
-export async function initRouter() {
-  _supabase = initSupabase();
-  initAuth();
-  initUIComponents();
+  // Auto-login silencieux (dev mode — auth guard désactivé)
+  try {
+    await _supabase.auth.signInWithPassword({
+      email: 'florian@salesaiflo.com',
+      password: 'Test1234#'
+    });
+  } catch {}
 
   window.__uiPanels = { openPanel, closePanels, closeModal };
 
