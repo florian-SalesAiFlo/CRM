@@ -1,15 +1,11 @@
 /* =======================================================
    router.js — SPA hash-based routing CRM Cosmos
-   Gère : navigation, auth guard, sidebar active state.
-   Init : window.__uiPanels, initSupabase(), initUIComponents()
    ======================================================= */
 
 import { initSupabase }                       from './supabase-client.js';
 import { initUIComponents }                   from './ui-components.js';
 import { openPanel, closePanels, closeModal } from './ui-panels.js';
-import { initAuth, isAuthenticated }          from './auth.js';
-
-// ── Constantes de routing ─────────────────────────────────
+import { initAuth }                           from './auth.js';
 
 const ROUTES = {
   '/login':          { page: 'pages/login.html',           auth: false },
@@ -20,56 +16,41 @@ const ROUTES = {
 };
 
 const DEFAULT_ROUTE  = '/prospects';
-const LOGIN_ROUTE    = '/login';
 const APP_CONTAINER  = 'app';
 const SIDEBAR_ID     = 'sidebar';
 const SIDEBAR_TOGGLE = 'sidebar-toggle';
 
-// ── État module ───────────────────────────────────────────
-
 let _supabase = null;
 
-// ── Init principale ───────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────
 
-/**
- * Point d'entrée du router. Appelé une seule fois au chargement.
- */
 export async function initRouter() {
   _supabase = initSupabase();
   initAuth();
   initUIComponents();
-
-  // Auto-login silencieux (dev mode — auth guard désactivé)
-  try {
-    await _supabase.auth.signInWithPassword({
-      email: 'florian@salesaiflo.com',
-      password: 'Test1234'
-    });
-  } catch {}
-
   window.__uiPanels = { openPanel, closePanels, closeModal };
+
+  // Auto-login silencieux (dev mode)
+  _supabase.auth.signInWithPassword({
+    email: 'florian@salesaiflo.com',
+    password: 'Test1234'
+  }).then(() => {
+    // Re-naviguer après login pour charger les données
+    navigate(getCurrentRoute());
+  }).catch(() => {});
 
   initSidebar();
   listenHashChange();
   await navigate(getCurrentRoute());
 }
 
-// ── Route courante ────────────────────────────────────────
+// ── Routing ───────────────────────────────────────────────
 
-/**
- * Lit le hash courant et retourne la route propre.
- * @returns {string}
- */
 function getCurrentRoute() {
   const hash = window.location.hash.replace('#', '') || DEFAULT_ROUTE;
   return hash.startsWith('/') ? hash : `/${hash}`;
 }
 
-/**
- * Résout une route dynamique avec paramètres.
- * @param {string} path
- * @returns {{ pattern: string, params: object } | null}
- */
 function resolveRoute(path) {
   for (const pattern of Object.keys(ROUTES)) {
     const paramNames = [];
@@ -87,15 +68,8 @@ function resolveRoute(path) {
   return null;
 }
 
-// ── Navigation ────────────────────────────────────────────
-
-/**
- * Navigue vers une route.
- * @param {string} path
- */
 async function navigate(path) {
   const resolved = resolveRoute(path);
-
   if (!resolved) {
     window.location.hash = DEFAULT_ROUTE;
     return;
@@ -104,20 +78,12 @@ async function navigate(path) {
   const { pattern, params } = resolved;
   const route = ROUTES[pattern];
 
-  // Auth désactivée temporairement — accès direct à toutes les pages
-  // if (route.auth) { ... }
-
   await loadPage(route.page, params);
   await initPageScripts(pattern);
   updateSidebarActive(path);
   autoCollapseSidebar();
 }
 
-/**
- * Charge le HTML d'une page dans le conteneur principal.
- * @param {string} pageUrl
- * @param {object} params
- */
 async function loadPage(pageUrl, params = {}) {
   const container = document.getElementById(APP_CONTAINER);
   if (!container) return;
@@ -131,37 +97,21 @@ async function loadPage(pageUrl, params = {}) {
     const html = await res.text();
     container.innerHTML = html;
   } catch {
-    container.innerHTML = renderErrorPage(pageUrl);
+    container.innerHTML = `
+      <div style="padding:3rem;text-align:center;color:var(--color-text-tertiary)">
+        <p style="font-size:2rem">⚠️</p>
+        <p style="font-weight:600;margin-top:1rem">Page introuvable</p>
+        <p style="font-size:.875rem;margin-top:.5rem">${pageUrl}</p>
+      </div>`.trim();
   }
 }
-
-/**
- * Génère un HTML d'erreur si la page est introuvable.
- * @param {string} pageUrl
- * @returns {string}
- */
-function renderErrorPage(pageUrl) {
-  return `
-    <div style="padding:3rem;text-align:center;color:var(--color-text-tertiary)">
-      <p style="font-size:2rem">⚠️</p>
-      <p style="font-weight:600;margin-top:1rem">Page introuvable</p>
-      <p style="font-size:.875rem;margin-top:.5rem">${pageUrl}</p>
-    </div>
-  `.trim();
-}
-
-// ── Hash listener ─────────────────────────────────────────
 
 function listenHashChange() {
   window.addEventListener('hashchange', () => navigate(getCurrentRoute()));
 }
 
-// ── Page scripts (remplace les <script> dans les partials) ──
+// ── Page scripts ──────────────────────────────────────────
 
-/**
- * Initialise les scripts spécifiques à chaque page après injection HTML.
- * @param {string} pattern
- */
 async function initPageScripts(pattern) {
   switch (pattern) {
     case '/login':          return initLoginPage();
@@ -172,9 +122,6 @@ async function initPageScripts(pattern) {
   }
 }
 
-/**
- * Login page : gère le formulaire, validation, appel Supabase.
- */
 function initLoginPage() {
   const form     = document.getElementById('login-form');
   const emailEl  = document.getElementById('login-email');
@@ -257,17 +204,11 @@ function initLoginPage() {
   }
 }
 
-/**
- * Dashboard page.
- */
 async function initDashboardPage() {
   const { initDashboard } = await import('./dashboard.js');
   initDashboard();
 }
 
-/**
- * Prospect list page.
- */
 async function initProspectListPage() {
   const { initProspectList } = await import('./prospects.js');
   initProspectList();
@@ -275,9 +216,6 @@ async function initProspectListPage() {
   initProspectCreate();
 }
 
-/**
- * Prospect detail page.
- */
 async function initProspectDetailPage() {
   const { initProspectDetail } = await import('./prospect-detail.js');
   initProspectDetail();
@@ -330,9 +268,6 @@ function autoCollapseSidebar() {
   }, 3000);
 }
 
-/**
- * @param {MouseEvent} e
- */
 function handleSidebarClick(e) {
   const link = e.target.closest('a[data-route]');
   if (!link) return;
@@ -340,9 +275,6 @@ function handleSidebarClick(e) {
   window.location.hash = link.dataset.route;
 }
 
-/**
- * @param {string} currentPath
- */
 function updateSidebarActive(currentPath) {
   document.querySelectorAll('#sidebar a[data-route]').forEach(link => {
     const route    = link.dataset.route;
