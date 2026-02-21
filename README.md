@@ -1,4 +1,4 @@
-# CRM M2BPO
+# CRM Cosmos
 
 CRM sur-mesure pour M2BPO — éditeur d'un outil de veille marchés publics pour architectes.
 
