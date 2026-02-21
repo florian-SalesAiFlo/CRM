@@ -24,10 +24,28 @@ export function initSupabase() {
 
   // Le SDK Supabase est chargé en <script> CDN dans index.html.
   // window.supabase est exposé globalement par le bundle UMD.
-  _client = window.supabase.createClient(
+_client = window.supabase.createClient(
     SUPABASE_CONFIG.url,
-    SUPABASE_CONFIG.anonKey
+    SUPABASE_CONFIG.anonKey,
+    {
+      auth: {
+        persistSession: true,
+        storageKey: 'crm-m2bpo-auth',
+        autoRefreshToken: true,
+        detectSessionInUrl: false,
+        flowType: 'implicit',
+        lock: 'no-op'
+      }
+    }
   );
+```
+
+Sauvegarde, puis :
+```
+cd C:\Users\flori\Desktop\CRM
+git add .
+git commit -m "fix: restore auth options + disable LockManager"
+git push
 
   return _client;
 }
