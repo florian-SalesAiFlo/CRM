@@ -132,7 +132,9 @@
 
 </div>
 
+<!-- ── Styles page ───────────────────────────────────────── -->
 <style>
+  /* Layout page */
   .page-layout {
     display: flex;
     flex-direction: column;
@@ -154,6 +156,7 @@
   .page-title        { font-size: var(--text-xl); font-weight: 700;
                        letter-spacing: -.03em; color: var(--color-text); }
 
+  /* Bouton */
   .btn {
     display: inline-flex; align-items: center; gap: var(--space-2);
     font-family: var(--font-sans); font-size: var(--text-sm); font-weight: 600;
@@ -167,6 +170,7 @@
   .btn-ghost      { background: transparent; color: var(--color-text-secondary); }
   .btn-ghost:hover { background: var(--color-surface-alt); }
 
+  /* Filtres */
   .filter-bar {
     display: flex; align-items: center;
     padding: var(--space-3) var(--space-6);
@@ -210,6 +214,7 @@
   }
   .filter-select:focus { outline: none; border-color: var(--color-primary); }
 
+  /* Tableau */
   .table-wrap {
     flex: 1; overflow: auto;
     background: var(--color-surface);
@@ -237,12 +242,14 @@
   }
   .col-center { text-align: center; }
 
+  /* Tri */
   .th-sort { cursor: pointer; user-select: none; }
   .th-sort:hover { color: var(--color-text); }
   .sort-icon::after { content: ''; margin-left: var(--space-1); opacity: .4; }
   .th-sort.sort-asc  .sort-icon::after { content: '↑'; opacity: 1; }
   .th-sort.sort-desc .sort-icon::after { content: '↓'; opacity: 1; }
 
+  /* Lignes */
   .prospects-row { cursor: pointer; transition: background var(--transition-fast); }
   .prospects-row:hover { background: var(--color-primary-soft); }
   .prospects-row:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
@@ -260,6 +267,7 @@
     color: var(--color-text-secondary);
   }
 
+  /* Skeleton */
   .skel {
     border-radius: var(--radius-sm); background: var(--color-border);
     animation: shimmer 1.4s ease-in-out infinite;
@@ -271,6 +279,7 @@
     50%       { opacity: .4; }
   }
 
+  /* Slide panel (scope local) */
   .slide-panel {
     position: fixed; top: 0; right: -440px; height: 100vh; width: 440px;
     background: var(--color-surface);
@@ -298,6 +307,7 @@
   }
   .slide-overlay.open { display: block; }
 
+  /* Formulaire création */
   .form-field    { margin-bottom: var(--space-4); }
   .form-label    {
     display: block; font-size: var(--text-sm); font-weight: 500;
@@ -323,6 +333,7 @@
     border-top: 1px solid var(--color-border);
   }
 
+  /* Badge (si pas encore dans global CSS) */
   .badge {
     display: inline-flex; align-items: center;
     padding: 2px var(--space-2); border-radius: 99px;
@@ -335,7 +346,11 @@
   .badge-info      { background: var(--color-info-soft);     color: var(--color-info); }
   .badge-primary   { background: var(--color-primary-soft);  color: var(--color-primary); }
 
+  /* Empty state */
   .empty-state      { text-align: center; padding: var(--space-8); color: var(--color-text-tertiary); }
   .empty-state-icon { font-size: 2rem; margin-bottom: var(--space-3); }
   .empty-state p    { font-size: var(--text-sm); }
 </style>
+
+<!-- ── Init JS ────────────────────────────────────────────── -->
+<!-- ── Init JS géré par router.js → initPageScripts() ────── -->

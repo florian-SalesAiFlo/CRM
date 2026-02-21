@@ -4,19 +4,19 @@
    Init : window.__uiPanels, initSupabase(), initUIComponents()
    ======================================================= */
 
-import { initSupabase }                       from './supabase-client.js';
-import { initUIComponents }                   from './ui-components.js';
+import { initSupabase }                      from './supabase-client.js';
+import { initUIComponents }                  from './ui-components.js';
 import { openPanel, closePanels, closeModal } from './ui-panels.js';
 import { initAuth, isAuthenticated }          from './auth.js';
 
 // ── Constantes de routing ─────────────────────────────────
 
 const ROUTES = {
-  '/login':          { page: 'pages/login.html',           auth: false },
-  '/dashboard':      { page: 'pages/dashboard.html',       auth: true  },
-  '/prospects':      { page: 'pages/prospect-list.html',   auth: true  },
-  '/prospect/:id':   { page: 'pages/prospect-detail.html', auth: true  },
-  '/rappels':        { page: 'pages/rappels.html',         auth: true  },
+  '/login':          { page: '/pages/login.html',         auth: false },
+  '/dashboard':      { page: '/pages/dashboard.html',     auth: true  },
+  '/prospects':      { page: '/pages/prospect-list.html', auth: true  },
+  '/prospect/:id':   { page: '/pages/prospect-detail.html', auth: true },
+  '/rappels':        { page: '/pages/rappels.html',       auth: true  },
 };
 
 const DEFAULT_ROUTE  = '/prospects';
@@ -32,13 +32,17 @@ let _supabase = null;
 // ── Init principale ───────────────────────────────────────
 
 /**
- * Point d'entrée du router. Appelé une seule fois au chargement.
+ * Point d'entrée du router. Appelé une seule fois au chargement de la page.
+ * Initialise Supabase, les composants UI, le namespace global panels,
+ * puis démarre le routing.
  */
 export async function initRouter() {
   _supabase = initSupabase();
   initAuth();
   initUIComponents();
 
+  // Expose les fonctions panels dans le namespace global.
+  // Pattern documenté dans SKILL.md — communication inter-modules sans bundler.
   window.__uiPanels = { openPanel, closePanels, closeModal };
 
   initSidebar();
@@ -49,8 +53,8 @@ export async function initRouter() {
 // ── Route courante ────────────────────────────────────────
 
 /**
- * Lit le hash courant et retourne la route propre.
- * @returns {string}
+ * Lit le hash courant et retourne la route propre (sans le #).
+ * @returns {string} ex: '/prospects' ou '/prospect/abc-123'
  */
 function getCurrentRoute() {
   const hash = window.location.hash.replace('#', '') || DEFAULT_ROUTE;
@@ -59,6 +63,7 @@ function getCurrentRoute() {
 
 /**
  * Résout une route dynamique avec paramètres.
+ * Retourne le pattern matché et les params extraits.
  * @param {string} path
  * @returns {{ pattern: string, params: object } | null}
  */
@@ -83,6 +88,7 @@ function resolveRoute(path) {
 
 /**
  * Navigue vers une route. Vérifie l'auth si nécessaire.
+ * Charge le HTML de la page dans le conteneur #app.
  * @param {string} path
  */
 async function navigate(path) {
@@ -96,26 +102,38 @@ async function navigate(path) {
   const { pattern, params } = resolved;
   const route = ROUTES[pattern];
 
-  if (route.auth && !(await isAuthenticated())) {
-    window.location.hash = LOGIN_ROUTE;
-    return;
+  if (route.auth) {
+    try {
+      const authenticated = await Promise.race([
+        isAuthenticated(),
+        new Promise(resolve => setTimeout(() => resolve(false), 3000))
+      ]);
+      if (!authenticated) {
+        window.location.hash = LOGIN_ROUTE;
+        return;
+      }
+    } catch {
+      window.location.hash = LOGIN_ROUTE;
+      return;
+    }
   }
 
   await loadPage(route.page, params);
-  await initPageScripts(pattern);
   updateSidebarActive(path);
+  initPageScripts(pattern);
 }
 
 /**
  * Charge le HTML d'une page dans le conteneur principal.
- * @param {string} pageUrl
- * @param {object} params
+ * Injecte les params de route dans window.CRM.routeParams.
+ * @param {string} pageUrl  - chemin vers le fichier HTML partiel
+ * @param {object} params   - paramètres de route extraits (ex: { id: '...' })
  */
 async function loadPage(pageUrl, params = {}) {
   const container = document.getElementById(APP_CONTAINER);
   if (!container) return;
 
-  window.CRM             = window.CRM ?? {};
+  window.CRM = window.CRM ?? {};
   window.CRM.routeParams = params;
 
   try {
@@ -123,32 +141,15 @@ async function loadPage(pageUrl, params = {}) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
     container.innerHTML = html;
-    activateScripts(container);
   } catch {
     container.innerHTML = renderErrorPage(pageUrl);
   }
 }
 
 /**
- * Réactive les <script> injectés via innerHTML.
- * innerHTML ne lance pas les scripts, il faut les cloner.
- * @param {HTMLElement} container
- */
-function activateScripts(container) {
-  container.querySelectorAll('script').forEach(old => {
-    const fresh = document.createElement('script');
-    for (const attr of old.attributes) {
-      fresh.setAttribute(attr.name, attr.value);
-    }
-    fresh.textContent = old.textContent;
-    old.parentNode.replaceChild(fresh, old);
-  });
-}
-
-/**
  * Génère un HTML d'erreur si la page est introuvable.
  * @param {string} pageUrl
- * @returns {string}
+ * @returns {string} HTML
  */
 function renderErrorPage(pageUrl) {
   return `
@@ -160,121 +161,20 @@ function renderErrorPage(pageUrl) {
   `.trim();
 }
 
-// ── Page scripts (remplace les <script> dans les partials) ──
-
-/**
- * Initialise les scripts spécifiques à chaque page après injection HTML.
- * @param {string} pattern - Le pattern de route matché
- */
-async function initPageScripts(pattern) {
-  switch (pattern) {
-    case '/login':     return initLoginPage();
-    case '/prospects': return initProspectListPage();
-    default:           return;
-  }
-}
-
-/**
- * Login page : gère le formulaire, validation, appel Supabase.
- */
-function initLoginPage() {
-  const form     = document.getElementById('login-form');
-  const emailEl  = document.getElementById('login-email');
-  const passEl   = document.getElementById('login-password');
-  const errorBox = document.getElementById('login-error');
-  const errorMsg = document.getElementById('login-error-msg');
-  const btn      = document.getElementById('login-btn');
-  const btnText  = document.getElementById('login-btn-text');
-  const spinner  = document.getElementById('login-spinner');
-  const eyeBtn   = document.getElementById('login-eye');
-
-  if (!form) return;
-
-  eyeBtn?.addEventListener('click', () => {
-    const isHidden = passEl.type === 'password';
-    passEl.type = isHidden ? 'text' : 'password';
-    eyeBtn.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
-  });
-
-  [emailEl, passEl].forEach(el => el?.addEventListener('input', hideError));
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideError();
-
-    const email    = emailEl.value.trim();
-    const password = passEl.value;
-
-    if (!email || !email.includes('@')) {
-      showError('Adresse email invalide.');
-      emailEl.classList.add('is-error');
-      emailEl.focus();
-      return;
-    }
-    if (!password || password.length < 1) {
-      showError('Le mot de passe est requis.');
-      passEl.classList.add('is-error');
-      passEl.focus();
-      return;
-    }
-
-    setLoading(true);
-    const { login } = await import('./auth.js');
-    const { error } = await login(email, password);
-    setLoading(false);
-
-    if (error) {
-      const code = error?.code ?? '';
-      const msg  = error?.message ?? '';
-      switch (code) {
-        case 'invalid_credentials':  showError('Email ou mot de passe incorrect.'); break;
-        case 'email_not_confirmed':  showError('Email non confirmé. Vérifiez votre boîte mail.'); break;
-        case 'user_not_found':       showError('Aucun compte associé à cet email.'); break;
-        case 'too_many_requests':    showError('Trop de tentatives. Réessayez dans quelques minutes.'); break;
-        default:                     showError(msg || 'Une erreur est survenue. Réessayez.');
-      }
-      return;
-    }
-
-    window.location.hash = '/prospects';
-  });
-
-  function showError(message) {
-    errorMsg.textContent = message;
-    errorBox.hidden = false;
-    errorBox.style.display = '';
-  }
-
-  function hideError() {
-    errorBox.hidden = true;
-    errorBox.style.display = 'none';
-    [emailEl, passEl].forEach(el => el?.classList.remove('is-error'));
-  }
-
-  function setLoading(loading) {
-    btn.disabled        = loading;
-    btnText.textContent = loading ? 'Connexion…' : 'Se connecter';
-    spinner.hidden      = !loading;
-    spinner.style.display = loading ? '' : 'none';
-  }
-}
-
-/**
- * Prospect list page : initialise la liste via le module prospects.js
- */
-async function initProspectListPage() {
-  const { initProspectList } = await import('./prospects.js');
-  initProspectList();
-}
-
 // ── Hash listener ─────────────────────────────────────────
 
+/**
+ * Écoute les changements de hash et déclenche la navigation.
+ */
 function listenHashChange() {
   window.addEventListener('hashchange', () => navigate(getCurrentRoute()));
 }
 
 // ── Sidebar ───────────────────────────────────────────────
 
+/**
+ * Initialise la sidebar : toggle collapse + délégation clics nav.
+ */
 function initSidebar() {
   const toggle = document.getElementById(SIDEBAR_TOGGLE);
   if (toggle) toggle.addEventListener('click', toggleSidebar);
@@ -283,6 +183,9 @@ function initSidebar() {
   if (sidebar) sidebar.addEventListener('click', handleSidebarClick);
 }
 
+/**
+ * Bascule l'état collapsed de la sidebar.
+ */
 function toggleSidebar() {
   const sidebar = document.getElementById(SIDEBAR_ID);
   if (!sidebar) return;
@@ -291,6 +194,7 @@ function toggleSidebar() {
 }
 
 /**
+ * Délègue les clics sur les liens de la sidebar pour le routage.
  * @param {MouseEvent} e
  */
 function handleSidebarClick(e) {
@@ -301,12 +205,46 @@ function handleSidebarClick(e) {
 }
 
 /**
+ * Met à jour la classe active des liens sidebar selon la route courante.
  * @param {string} currentPath
  */
 function updateSidebarActive(currentPath) {
   document.querySelectorAll('#sidebar a[data-route]').forEach(link => {
-    const route    = link.dataset.route;
+    const route   = link.dataset.route;
     const isActive = currentPath === route || currentPath.startsWith(`${route}/`);
     link.classList.toggle('active', isActive);
   });
+}
+
+// ── Page scripts (lazy import par route) ─────────────────
+
+/**
+ * Charge et initialise le module JS correspondant à la route active.
+ * Chaque import est lazy pour éviter de charger du code inutile.
+ * @param {string} pattern - pattern de route (ex: '/prospects')
+ */
+function initPageScripts(pattern) {
+  switch (pattern) {
+    case '/prospects':    return initProspectListPage();
+    case '/prospect/:id': return initProspectDetailPage();
+    case '/dashboard':    return initDashboardPage();
+    default:              break;
+  }
+}
+
+async function initProspectListPage() {
+  const { initProspectList }   = await import('./prospects.js');
+  const { initProspectCreate } = await import('./prospect-create.js');
+  initProspectList();
+  initProspectCreate(() => initProspectList());
+}
+
+async function initProspectDetailPage() {
+  const { initProspectDetail } = await import('./prospect-detail.js');
+  initProspectDetail();
+}
+
+async function initDashboardPage() {
+  const { initDashboard } = await import('./dashboard.js');
+  initDashboard();
 }

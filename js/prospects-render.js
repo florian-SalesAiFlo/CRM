@@ -11,7 +11,7 @@ import { getRetour, STATUTS_PROSPECT, RETOURS_PROSPECT, METIERS } from './config
 
 /**
  * Injecte le rendu du tableau dans le tbody.
- * @param {Array}  prospects
+ * @param {Array}  prospects - données filtrées et triées
  * @param {string} tbodyId
  */
 export function renderTable(prospects, tbodyId) {
@@ -33,7 +33,7 @@ export function renderTable(prospects, tbodyId) {
 
 /**
  * Génère le HTML d'une ligne prospect.
- * @param {object} p
+ * @param {object} p - prospect enrichi avec profiles et interactions
  * @returns {string} HTML <tr>
  */
 function renderRow(p) {
@@ -47,7 +47,7 @@ function renderRow(p) {
         tabindex="0" role="link" aria-label="Ouvrir la fiche ${esc(p.nom)}">
       <td class="col-nom">
         <span class="prospect-name">${esc(p.nom)}</span>
-        ${p.siret ? `<span class="prospect-siret">${esc(p.siret)}</span>` : ''}
+        ${p.siret ? `<span class="prospect-siret">${esc(formatSiret(p.siret))}</span>` : ''}
       </td>
       <td>${p.metier ? esc(p.metier) : '—'}</td>
       <td>${badgeStatut(p.statut)}</td>
@@ -83,7 +83,7 @@ function formatLastContact(interactions) {
 
 /**
  * Génère le HTML du formulaire de création de prospect.
- * @param {string} formId
+ * @param {string} formId - id du <form> à générer
  * @returns {string} HTML
  */
 export function renderCreateForm(formId) {
@@ -139,6 +139,16 @@ export function renderCreateForm(formId) {
 }
 
 // ── Utils locaux ──────────────────────────────────────────
+
+/**
+ * Formate un SIRET avec des espaces tous les 3 chiffres.
+ * @param {string|null} siret
+ * @returns {string}
+ */
+function formatSiret(siret) {
+  if (!siret) return '';
+  return siret.replace(/(\d{3})(?=\d)/g, '$1 ');
+}
 
 /**
  * Échappe les caractères HTML dangereux.
