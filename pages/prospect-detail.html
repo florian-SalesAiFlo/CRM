@@ -4,6 +4,9 @@
      PAS de <script> ici. JS : js/prospect-detail.js
      ======================================================== -->
 
+<!-- ── Overlay slide panels ──────────────────────────────── -->
+<div class="slide-overlay" id="slide-overlay"></div>
+
 <!-- ── Slide panels ──────────────────────────────────────── -->
 <div class="slide-panel" id="panel-new-contact"
      role="dialog" aria-modal="true" aria-labelledby="panel-contact-title">
@@ -64,6 +67,8 @@
 
       <div class="dhc-right">
         <span class="dhc-commercial" id="detail-commercial-label"></span>
+        <button class="btn btn-sm btn-ghost btn-danger-text" id="btn-delete-prospect"
+                aria-label="Supprimer ce prospect">Supprimer</button>
         <button class="btn btn-sm btn-primary" id="btn-edit-prospect">Modifier</button>
       </div>
     </header>
@@ -192,6 +197,7 @@
   .dhc-right {
     display: flex; align-items: center; gap: var(--space-3);
   }
+  .btn-danger-text { color: var(--color-danger) !important; }
   .dhc-commercial {
     font-size: var(--text-sm); color: var(--color-text-secondary);
   }
