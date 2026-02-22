@@ -42,7 +42,7 @@ function renderEditGrid(p) {
       <div class="ef-field">
         <label class="ef-label" for="ef-siret">SIRET</label>
         <input class="ef-input" id="ef-siret" name="siret" type="text"
-               value="${esc(p.siret ?? '')}" maxlength="14">
+               value="${esc(p.siret ?? '')}" maxlength="14" placeholder="123456789 00012">
       </div>
 
       <div class="ef-field">
@@ -85,7 +85,7 @@ function renderEditGrid(p) {
                value="${esc(p.site_web ?? '')}">
       </div>
 
-      <div class="ef-field">
+      <div class="ef-field ef-field--full">
         <label class="ef-label" for="ef-adresse">Adresse</label>
         <input class="ef-input" id="ef-adresse" name="adresse" type="text"
                value="${esc(p.adresse ?? '')}">
@@ -103,7 +103,7 @@ function renderEditGrid(p) {
                value="${esc(p.ville ?? '')}">
       </div>
 
-      <div class="ef-field">
+      <div class="ef-field ef-field--full">
         <label class="ef-label" for="ef-commentaire">Commentaire</label>
         <textarea class="ef-input ef-textarea" id="ef-commentaire"
                   name="commentaire" rows="3">${esc(p.commentaire ?? '')}</textarea>
@@ -126,6 +126,7 @@ function renderEditGrid(p) {
         padding: var(--space-4);
       }
       .ef-field { display: flex; flex-direction: column; gap: var(--space-1); }
+      .ef-field--full { grid-column: 1 / -1; }
       .ef-label {
         font-size: var(--text-xs); font-weight: 500;
         color: var(--color-text-tertiary);
@@ -146,7 +147,7 @@ function renderEditGrid(p) {
       .ef-textarea { resize: vertical; min-height: 72px; }
       .ef-actions {
         grid-column: 1 / -1;
-        display: flex; gap: var(--space-3); justify-content: center;
+        display: flex; gap: var(--space-3); justify-content: flex-end;
         padding-top: var(--space-3); border-top: 1px solid var(--color-border);
       }
     </style>`;
@@ -170,7 +171,7 @@ export function initProspectEdit(prospect, onSave) {
   const submitTxt = document.getElementById('ef-submit-text');
 
   document.getElementById('ef-cancel')?.addEventListener('click', () => {
-    if (typeof onSave === 'function') onSave();
+    if (typeof onSave === 'function') onSave(); // rafraîchit = restaure lecture seule
   });
 
   form?.addEventListener('submit', async (e) => {
