@@ -3,12 +3,11 @@
    Coordinateur : charge les données, délègue aux sous-modules.
    ======================================================= */
 import { fetchProspectById, fetchInteractions, fetchRappels, fetchContacts,
-         deleteProspect, deleteContact } from './supabase-client.js';
+         deleteProspect, deleteContact, deleteInteraction } from './supabase-client.js';
 import { toast }          from './ui-components.js';
 import { openPanel, modal, closeModal } from './ui-panels.js';
 import { getStatut, getRetour, getCanal, METIERS, ROLES_EMPLOYE, STATUTS_RAPPEL,
          CANAUX_INTERACTION } from './config.js';
-
 let _prospect = null;
 
 // ── Init ──────────────────────────────────────────────────
@@ -194,16 +193,19 @@ function renderTimeline(interactions) {
     return;
   }
   tl.innerHTML = interactions.map(i => {
-    const canal  = getCanal(i.canal);
-    const date   = new Date(i.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
-    const auteur = i.profiles?.nom ?? 'Inconnu';
-    return `<div class="tl-item">
-      <div class="tl-icon ${canal.tlClass}">${canal.icon}</div>
-      <div class="tl-body">
-        <div class="tl-header"><span class="tl-title">${canal.label}</span><span class="tl-date">${date}</span></div>
-        <div class="tl-comment">${esc(i.contenu ?? '')}</div>
-        <div class="tl-meta">${esc(auteur)}</div>
-      </div></div>`;
+    const canal   = getCanal(i.canal);
+    const date    = new Date(i.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const auteur  = i.profiles?.nom ?? 'Inconnu';
+    const encoded = esc(JSON.stringify(i));
+    const actions = `<span class="interaction-actions">` +
+      `<button class="btn btn-sm btn-ghost interaction-edit" data-interaction='${encoded}' title="Modifier">✏️</button>` +
+      `<button class="btn btn-sm btn-ghost interaction-delete" data-id="${esc(i.id)}" title="Supprimer">🗑️</button>` +
+      `</span>`;
+    return `<div class="tl-item"><div class="tl-icon ${canal.tlClass}">${canal.icon}</div>` +
+      `<div class="tl-body"><div class="tl-header"><span class="tl-title">${canal.label}</span>` +
+      `<span class="tl-date">${date}</span>${actions}</div>` +
+      `<div class="tl-comment">${esc(i.contenu ?? '')}</div>` +
+      `<div class="tl-meta">${esc(auteur)}</div></div></div>`;
   }).join('');
 }
 
@@ -227,51 +229,69 @@ function renderRappels(rappels) {
 
 // ── Panels boutons ────────────────────────────────────────
 function bindPanelButtons(prospectId) {
+  const refresh = () => loadProspect(prospectId);
+
   document.getElementById('btn-new-contact')?.addEventListener('click', async () => {
     const { initContactPanel } = await import('./contact-form.js');
-    initContactPanel(prospectId, () => loadProspect(prospectId));
+    initContactPanel(prospectId, refresh);
     openPanel('panel-new-contact');
   });
   document.getElementById('btn-new-interaction')?.addEventListener('click', async () => {
     const { initInteractionPanel } = await import('./interaction-form.js');
-    initInteractionPanel(prospectId, () => loadProspect(prospectId));
+    initInteractionPanel(prospectId, refresh);
     openPanel('panel-new-interaction');
   });
   document.getElementById('btn-new-rappel')?.addEventListener('click', async () => {
     const { initRappelPanel } = await import('./rappel-form.js');
-    initRappelPanel(prospectId, () => loadProspect(prospectId));
+    initRappelPanel(prospectId, refresh);
     openPanel('panel-new-rappel');
   });
 
-  // ── Délégation édition / suppression contacts ──────────
+  // Délégation contacts
   document.getElementById('contacts-tbody')?.addEventListener('click', async (e) => {
     const editBtn   = e.target.closest('.contact-edit');
     const deleteBtn = e.target.closest('.contact-delete');
-
     if (editBtn) {
       const contact = JSON.parse(editBtn.dataset.contact);
       const { initContactPanel } = await import('./contact-form.js');
-      initContactPanel(prospectId, () => loadProspect(prospectId), contact);
+      initContactPanel(prospectId, refresh, contact);
       openPanel('panel-new-contact');
       return;
     }
-
     if (deleteBtn) {
       const { id, nom } = deleteBtn.dataset;
       if (!window.confirm(`Supprimer le contact "${nom}" ? Cette action est irréversible.`)) return;
       const { error } = await deleteContact(id);
       if (error) { toast(`Erreur : ${error.message}`, 'error'); return; }
       toast(`${nom} supprimé.`, 'success');
-      loadProspect(prospectId);
+      refresh();
+    }
+  });
+
+  // Délégation interactions
+  document.getElementById('timeline')?.addEventListener('click', async (e) => {
+    const editBtn   = e.target.closest('.interaction-edit');
+    const deleteBtn = e.target.closest('.interaction-delete');
+    if (editBtn) {
+      const interaction = JSON.parse(editBtn.dataset.interaction);
+      const { initInteractionPanel } = await import('./interaction-form.js');
+      initInteractionPanel(prospectId, refresh, interaction);
+      openPanel('panel-new-interaction');
+      return;
+    }
+    if (deleteBtn) {
+      const { id } = deleteBtn.dataset;
+      if (!window.confirm("Supprimer cette interaction ? Cette action est irréversible.")) return;
+      const { error } = await deleteInteraction(id);
+      if (error) { toast(`Erreur : ${error.message}`, 'error'); return; }
+      toast('Interaction supprimée.', 'success');
+      refresh();
     }
   });
 }
 
 // ── Utils ─────────────────────────────────────────────────
-function formatSiret(siret) {
-  if (!siret) return null;
-  return siret.replace(/(\d{3})(?=\d)/g, '$1 ');
-}
+function formatSiret(s) { return s ? s.replace(/(\d{3})(?=\d)/g, '$1 ') : null; }
 function esc(str) {
   if (!str) return '';
   return String(str).replace(/[&<>"']/g, c =>
