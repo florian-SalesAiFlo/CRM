@@ -23,6 +23,13 @@ function opt(list, current) {
   ).join('');
 }
 
+function field(label, inputHtml, full) {
+  return `<div class="info-field${full ? ' info-field--full' : ''}">
+    <div class="info-label">${label}</div>
+    <div class="info-value">${inputHtml}</div>
+  </div>`;
+}
+
 // ── Rendu formulaire inline ───────────────────────────────
 
 function renderEditGrid(p) {
@@ -30,97 +37,56 @@ function renderEditGrid(p) {
   const statutOpts  = opt(STATUTS_PROSPECT, p.statut);
   const retourOpts  = `<option value="">— Aucun —</option>${opt(RETOURS_PROSPECT, p.retour)}`;
 
-  return `
+  const html = `
     <form id="form-edit-prospect" novalidate>
-
-      <div class="info-grid">
-        <div class="info-field">
-          <div class="info-label">Nom <span style="color:var(--color-danger)">*</span></div>
-          <input class="ef-input" id="ef-nom" name="nom" type="text"
-                 value="${esc(p.nom)}" required>
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">SIRET</div>
-          <input class="ef-input" id="ef-siret" name="siret" type="text"
-                 value="${esc(p.siret ?? '')}" maxlength="14">
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Métier</div>
-          <select class="ef-input" id="ef-metier" name="metier">
-            <option value="">— Sélectionner —</option>
-            ${metierOpts}
-          </select>
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Statut</div>
-          <select class="ef-input" id="ef-statut" name="statut">
-            ${statutOpts}
-          </select>
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Retour</div>
-          <select class="ef-input" id="ef-retour" name="retour">
-            ${retourOpts}
-          </select>
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Téléphone</div>
-          <input class="ef-input" id="ef-telephone" name="telephone" type="tel"
-                 value="${esc(p.telephone ?? '')}">
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Email</div>
-          <input class="ef-input" id="ef-email" name="email" type="email"
-                 value="${esc(p.email ?? '')}">
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Site web</div>
-          <input class="ef-input" id="ef-site" name="site_web" type="url"
-                 value="${esc(p.site_web ?? '')}">
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Adresse</div>
-          <input class="ef-input" id="ef-adresse" name="adresse" type="text"
-                 value="${esc(p.adresse ?? '')}">
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Code postal</div>
-          <input class="ef-input" id="ef-cp" name="code_postal" type="text"
-                 value="${esc(p.code_postal ?? '')}" maxlength="10">
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Ville</div>
-          <input class="ef-input" id="ef-ville" name="ville" type="text"
-                 value="${esc(p.ville ?? '')}">
-        </div>
-
-        <div class="info-field">
-          <div class="info-label">Commentaire</div>
-          <textarea class="ef-input ef-textarea" id="ef-commentaire"
-                    name="commentaire" rows="3">${esc(p.commentaire ?? '')}</textarea>
-        </div>
-      </div>
-
-      <div class="ef-actions">
+      ${field('Nom *',
+        `<input class="ef-input" id="ef-nom" name="nom" type="text" value="${esc(p.nom)}" required>`
+      )}
+      ${field('SIRET',
+        `<input class="ef-input" id="ef-siret" name="siret" type="text" value="${esc(p.siret ?? '')}" maxlength="14">`
+      )}
+      ${field('Métier',
+        `<select class="ef-input" id="ef-metier" name="metier"><option value="">— Sélectionner —</option>${metierOpts}</select>`
+      )}
+      ${field('Statut',
+        `<select class="ef-input" id="ef-statut" name="statut">${statutOpts}</select>`
+      )}
+      ${field('Retour',
+        `<select class="ef-input" id="ef-retour" name="retour">${retourOpts}</select>`
+      )}
+      ${field('Téléphone',
+        `<input class="ef-input" id="ef-telephone" name="telephone" type="tel" value="${esc(p.telephone ?? '')}">`
+      )}
+      ${field('Email',
+        `<input class="ef-input" id="ef-email" name="email" type="email" value="${esc(p.email ?? '')}">`
+      )}
+      ${field('Site web',
+        `<input class="ef-input" id="ef-site" name="site_web" type="url" value="${esc(p.site_web ?? '')}">`
+      )}
+      ${field('Adresse',
+        `<input class="ef-input" id="ef-adresse" name="adresse" type="text" value="${esc(p.adresse ?? '')}">`,
+        true
+      )}
+      ${field('Code postal',
+        `<input class="ef-input" id="ef-cp" name="code_postal" type="text" value="${esc(p.code_postal ?? '')}" maxlength="10">`
+      )}
+      ${field('Ville',
+        `<input class="ef-input" id="ef-ville" name="ville" type="text" value="${esc(p.ville ?? '')}">`
+      )}
+      ${field('Commentaire',
+        `<textarea class="ef-input ef-textarea" id="ef-commentaire" name="commentaire" rows="3">${esc(p.commentaire ?? '')}</textarea>`,
+        true
+      )}
+      <div class="info-field info-field--full ef-actions-row">
         <button type="button" class="btn btn-ghost" id="ef-cancel">Annuler</button>
         <button type="submit" class="btn btn-primary" id="ef-submit">
           <span id="ef-submit-text">Enregistrer</span>
         </button>
       </div>
-
     </form>
 
     <style>
+      /* Inputs s'intègrent dans info-value */
       .ef-input {
         font-family: var(--font-sans); font-size: var(--text-sm);
         color: var(--color-text); background: var(--color-bg);
@@ -134,12 +100,16 @@ function renderEditGrid(p) {
         box-shadow: var(--shadow-focus);
       }
       .ef-textarea { resize: vertical; min-height: 72px; }
-      .ef-actions {
-        display: flex; gap: var(--space-3); justify-content: flex-end;
-        padding-top: var(--space-4); margin-top: var(--space-4);
-        border-top: 1px solid var(--color-border);
+      /* Full width fields */
+      .info-field--full { grid-column: 1 / -1; }
+      /* Actions row */
+      .ef-actions-row {
+        display: flex; gap: var(--space-3); justify-content: center;
+        padding-top: var(--space-4); border-bottom: none !important;
       }
     </style>`;
+
+  return html;
 }
 
 // ── API publique ──────────────────────────────────────────
