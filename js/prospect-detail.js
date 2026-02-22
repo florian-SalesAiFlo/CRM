@@ -3,7 +3,7 @@
    Coordinateur : charge les données, délègue aux sous-modules.
    ======================================================= */
 import { fetchProspectById, fetchInteractions, fetchRappels, fetchContacts,
-         deleteProspect } from './supabase-client.js';
+         deleteProspect, deleteContact } from './supabase-client.js';
 import { toast }          from './ui-components.js';
 import { openPanel, modal, closeModal } from './ui-panels.js';
 import { getStatut, getRetour, getCanal, METIERS, ROLES_EMPLOYE, STATUTS_RAPPEL,
@@ -164,15 +164,24 @@ function renderContacts(contacts) {
   const tbody = document.getElementById('contacts-tbody');
   if (!tbody) return;
   if (!contacts.length) {
-    tbody.innerHTML = `<tr><td colspan="4" style="padding:var(--space-6);text-align:center;color:var(--color-text-tertiary)">Aucun contact enregistré</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="padding:var(--space-6);text-align:center;color:var(--color-text-tertiary)">Aucun contact enregistré</td></tr>`;
     return;
   }
   tbody.innerHTML = contacts.map(c => {
-    const role = ROLES_EMPLOYE.find(r => r.value === c.role_employe)?.label ?? '—';
+    const role    = ROLES_EMPLOYE.find(r => r.value === c.role_employe)?.label ?? '—';
+    const encoded = esc(JSON.stringify(c));
     return `<tr>
       <td>${esc(c.nom)}</td><td>${esc(role)}</td>
       <td>${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '—'}</td>
-      <td>${esc(c.telephone ?? '—')}</td></tr>`;
+      <td>${esc(c.telephone ?? '—')}</td>
+      <td class="contact-actions">
+        <button class="btn btn-sm btn-ghost contact-edit"
+                data-contact='${encoded}'
+                title="Modifier" aria-label="Modifier ${esc(c.nom)}">✏️</button>
+        <button class="btn btn-sm btn-ghost contact-delete"
+                data-id="${esc(c.id)}" data-nom="${esc(c.nom)}"
+                title="Supprimer" aria-label="Supprimer ${esc(c.nom)}">🗑️</button>
+      </td></tr>`;
   }).join('');
 }
 
@@ -232,6 +241,29 @@ function bindPanelButtons(prospectId) {
     const { initRappelPanel } = await import('./rappel-form.js');
     initRappelPanel(prospectId, () => loadProspect(prospectId));
     openPanel('panel-new-rappel');
+  });
+
+  // ── Délégation édition / suppression contacts ──────────
+  document.getElementById('contacts-tbody')?.addEventListener('click', async (e) => {
+    const editBtn   = e.target.closest('.contact-edit');
+    const deleteBtn = e.target.closest('.contact-delete');
+
+    if (editBtn) {
+      const contact = JSON.parse(editBtn.dataset.contact);
+      const { initContactPanel } = await import('./contact-form.js');
+      initContactPanel(prospectId, () => loadProspect(prospectId), contact);
+      openPanel('panel-new-contact');
+      return;
+    }
+
+    if (deleteBtn) {
+      const { id, nom } = deleteBtn.dataset;
+      if (!window.confirm(`Supprimer le contact "${nom}" ? Cette action est irréversible.`)) return;
+      const { error } = await deleteContact(id);
+      if (error) { toast(`Erreur : ${error.message}`, 'error'); return; }
+      toast(`${nom} supprimé.`, 'success');
+      loadProspect(prospectId);
+    }
   });
 }
 
