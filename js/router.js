@@ -12,12 +12,12 @@ import { initAuth, isAuthenticated }          from './auth.js';
 // ── Constantes de routing ─────────────────────────────────
 
 const ROUTES = {
-  '/login':          { page: '/pages/login.html',         auth: false },
-  '/dashboard':      { page: '/pages/dashboard.html',     auth: true  },
-  '/prospects':      { page: '/pages/prospect-list.html', auth: true  },
-  '/prospect/:id':   { page: '/pages/prospect-detail.html', auth: true },
-  '/rappels':        { page: '/pages/rappels.html',       auth: true  },
-  '/import':         { page: '/pages/import.html',        auth: true  },
+  '/login':          { page: 'pages/login.html',         auth: false },
+  '/dashboard':      { page: 'pages/dashboard.html',     auth: true  },
+  '/prospects':      { page: 'pages/prospect-list.html', auth: true  },
+  '/prospect/:id':   { page: 'pages/prospect-detail.html', auth: true },
+  '/rappels':        { page: 'pages/rappels.html',       auth: true  },
+  '/import':         { page: 'pages/import.html',        auth: true  },
 };
 
 const DEFAULT_ROUTE  = '/prospects';
