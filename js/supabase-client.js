@@ -343,3 +343,13 @@ export async function updateRappel(id, data) {
   const db = getClient();
   return db.from('rappels').update(data).eq('id', id).select().single();
 }
+
+/**
+ * Supprime un rappel.
+ * @param {string} id
+ * @returns {Promise<{data: object|null, error: object|null}>}
+ */
+export async function deleteRappel(id) {
+  const db = getClient();
+  return db.from('rappels').delete().eq('id', id);
+}

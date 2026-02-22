@@ -1,14 +1,20 @@
 /* =======================================================
-   rappel-form.js — Formulaire création rappel
+   rappel-form.js — Formulaire rappel (création + édition)
    Injecte et lie le formulaire dans #panel-rappel-body.
-   Export : initRappelPanel(prospectId, onCreated)
+   Export : initRappelPanel(prospectId, onSaved, rappel?)
    ======================================================= */
 
-import { createRappel }  from './supabase-client.js';
-import { toast }         from './ui-components.js';
-import { closePanels }   from './ui-panels.js';
+import { createRappel, updateRappel } from './supabase-client.js';
+import { toast }       from './ui-components.js';
+import { closePanels } from './ui-panels.js';
 
 // ── Utils ─────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+  );
+}
 
 /** Date ISO YYYY-MM-DD du jour + n jours */
 function dateIn(days) {
@@ -18,27 +24,30 @@ function dateIn(days) {
 }
 
 // ── HTML formulaire ───────────────────────────────────────
+function renderForm(rappel = null) {
+  const v = rappel ?? {};
+  const defaultDate = v.date_rappel?.slice(0, 10) ?? dateIn(1);
 
-function renderForm() {
   return `
     <form id="form-new-rappel" novalidate class="pf-form">
 
       <div class="pf-field">
         <label class="pf-label" for="fr-date">Date du rappel <span aria-hidden="true">*</span></label>
         <input class="pf-input" id="fr-date" name="date_rappel" type="date"
-               value="${dateIn(1)}" required autofocus>
+               value="${esc(defaultDate)}" required autofocus>
       </div>
 
       <div class="pf-field">
         <label class="pf-label" for="fr-motif">Motif <span aria-hidden="true">*</span></label>
         <input class="pf-input" id="fr-motif" name="motif" type="text"
-               placeholder="Suivi candidature, point trimestriel…" required>
+               placeholder="Suivi candidature, point trimestriel…"
+               value="${esc(v.motif ?? '')}" required>
       </div>
 
       <div class="pf-field">
         <label class="pf-label" for="fr-commentaire">Commentaire</label>
         <textarea class="pf-input pf-textarea" id="fr-commentaire" name="commentaire"
-                  placeholder="Informations complémentaires…" rows="3"></textarea>
+                  placeholder="Informations complémentaires…" rows="3">${esc(v.commentaire ?? '')}</textarea>
       </div>
 
       <div class="pf-actions">
@@ -53,10 +62,7 @@ function renderForm() {
     <style>
       .pf-form   { display: flex; flex-direction: column; gap: var(--space-4); }
       .pf-field  { display: flex; flex-direction: column; gap: var(--space-2); }
-      .pf-label  {
-        font-size: var(--text-sm); font-weight: 500;
-        color: var(--color-text-secondary);
-      }
+      .pf-label  { font-size: var(--text-sm); font-weight: 500; color: var(--color-text-secondary); }
       .pf-input  {
         font-family: var(--font-sans); font-size: var(--text-base);
         color: var(--color-text); background: var(--color-surface);
@@ -64,10 +70,7 @@ function renderForm() {
         padding: var(--space-3) var(--space-4); width: 100%; box-sizing: border-box;
         transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
       }
-      .pf-input:focus {
-        outline: none; border-color: var(--color-primary);
-        box-shadow: var(--shadow-focus);
-      }
+      .pf-input:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--shadow-focus); }
       .pf-textarea { resize: vertical; min-height: 72px; }
       .pf-actions {
         display: flex; gap: var(--space-3); justify-content: flex-end;
@@ -77,18 +80,28 @@ function renderForm() {
     </style>`;
 }
 
+// ── Titre du panel ────────────────────────────────────────
+function setPanelTitle(isEdit) {
+  const h2 = document.querySelector('#panel-new-rappel .slide-panel-header h2');
+  if (h2) h2.textContent = isEdit ? 'Modifier le rappel' : 'Nouveau rappel';
+}
+
 // ── API publique ──────────────────────────────────────────
 
 /**
- * Injecte le formulaire rappel dans #panel-rappel-body et attache les listeners.
- * @param {string} prospectId - UUID du prospect parent
- * @param {Function} onCreated - Appelé après création réussie (ex: rafraîchir la liste rappels)
+ * Injecte le formulaire rappel dans #panel-rappel-body.
+ * Supporte la création (sans `rappel`) et l'édition (avec `rappel`).
+ * @param {string}      prospectId  - UUID du prospect parent (requis en création)
+ * @param {Function}    onSaved     - Appelé après enregistrement réussi
+ * @param {object|null} [rappel]    - Rappel existant pour le mode édition
  */
-export function initRappelPanel(prospectId, onCreated) {
+export function initRappelPanel(prospectId, onSaved, rappel = null) {
   const body = document.getElementById('panel-rappel-body');
   if (!body) return;
 
-  body.innerHTML = renderForm();
+  const isEdit = !!rappel;
+  body.innerHTML = renderForm(rappel);
+  setPanelTitle(isEdit);
 
   const form      = document.getElementById('form-new-rappel');
   const submitBtn = document.getElementById('fr-submit');
@@ -121,18 +134,20 @@ export function initRappelPanel(prospectId, onCreated) {
       commentaire: form.querySelector('#fr-commentaire')?.value.trim() || null,
     };
 
-    const { error } = await createRappel(prospectId, payload);
+    const { error } = isEdit
+      ? await updateRappel(rappel.id, payload)
+      : await createRappel(prospectId, payload);
 
     submitBtn.disabled    = false;
     submitTxt.textContent = 'Enregistrer';
 
     if (error) {
-      toast(`Erreur : ${error.message ?? 'création impossible.'}`, 'error');
+      toast(`Erreur : ${error.message ?? 'opération impossible.'}`, 'error');
       return;
     }
 
-    toast('Rappel créé.', 'success');
+    toast(isEdit ? 'Rappel modifié.' : 'Rappel créé.', 'success');
     closePanels();
-    if (typeof onCreated === 'function') onCreated();
+    if (typeof onSaved === 'function') onSaved();
   });
 }

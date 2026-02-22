@@ -8,6 +8,7 @@ import { toast }          from './ui-components.js';
 import { openPanel, modal, closeModal } from './ui-panels.js';
 import { getStatut, getRetour, getCanal, METIERS, ROLES_EMPLOYE, STATUTS_RAPPEL,
          CANAUX_INTERACTION } from './config.js';
+import { renderRappels, bindRappelActions } from './rappel-render.js';
 let _prospect = null;
 
 // ── Init ──────────────────────────────────────────────────
@@ -209,24 +210,6 @@ function renderTimeline(interactions) {
   }).join('');
 }
 
-// ── Rappels ───────────────────────────────────────────────
-function renderRappels(rappels) {
-  const list = document.getElementById('rappels-list');
-  if (!list) return;
-  if (!rappels.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔔</div><p>Aucun rappel</p></div>`;
-    return;
-  }
-  list.innerHTML = rappels.map(r => {
-    const st   = STATUTS_RAPPEL.find(s => s.value === r.statut);
-    const date = new Date(r.date_rappel).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
-    return `<div class="rappel-item">
-      <div><div class="rappel-date">${date}</div><div class="rappel-motif">${esc(r.motif ?? '—')}</div></div>
-      ${st ? `<span class="badge badge-${st.badgeType}">${st.label}</span>` : ''}
-    </div>`;
-  }).join('');
-}
-
 // ── Panels boutons ────────────────────────────────────────
 function bindPanelButtons(prospectId) {
   const refresh = () => loadProspect(prospectId);
@@ -288,6 +271,9 @@ function bindPanelButtons(prospectId) {
       refresh();
     }
   });
+
+  // Délégation rappels (via rappel-render.js)
+  bindRappelActions(prospectId, refresh);
 }
 
 // ── Utils ─────────────────────────────────────────────────
