@@ -1,0 +1,87 @@
+<!-- ========================================================
+     pages/import.html — Import CSV depuis CRM legacy
+     Chargé dans #app par router.js. JS : import.js
+     ======================================================== -->
+
+<div class="page-layout">
+
+  <!-- En-tête page -->
+  <header class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">Import CSV</h1>
+    </div>
+  </header>
+
+  <!-- Corps de page -->
+  <main class="import-main">
+
+    <!-- Étape 1 : Upload -->
+    <section class="import-section" id="import-step-upload">
+      <h2 class="import-step-title">
+        <span class="import-step-num">1</span> Choisir le fichier CSV
+      </h2>
+      <div class="upload-zone" id="upload-zone" role="button" tabindex="0"
+           aria-label="Zone de dépôt de fichier CSV">
+        <div class="upload-zone-inner">
+          <span class="upload-zone-icon">📂</span>
+          <p class="upload-zone-label">Glissez votre fichier CSV ici</p>
+          <p class="upload-zone-hint">ou</p>
+          <label class="btn btn-secondary upload-zone-btn" for="csv-file-input">
+            Choisir un fichier
+          </label>
+          <input type="file" id="csv-file-input" accept=".csv,text/csv"
+                 class="upload-zone-input" aria-label="Sélectionner un fichier CSV">
+        </div>
+        <p class="upload-zone-filename" id="upload-filename" hidden></p>
+      </div>
+    </section>
+
+    <!-- Étape 2 : Prévisualisation (injectée par import-render.js) -->
+    <section class="import-section" id="import-step-preview" hidden>
+      <h2 class="import-step-title">
+        <span class="import-step-num">2</span> Aperçu des données
+      </h2>
+      <div id="import-preview-container"></div>
+    </section>
+
+    <!-- Étape 3 : Mapping colonnes (injecté par import-render.js) -->
+    <section class="import-section" id="import-step-mapping" hidden>
+      <h2 class="import-step-title">
+        <span class="import-step-num">3</span> Associer les colonnes
+      </h2>
+      <p class="import-step-hint">
+        Indiquez à quel champ Cosmos correspond chaque colonne de votre fichier.
+        Les colonnes marquées <strong>—</strong> seront ignorées.
+      </p>
+      <div id="import-mapping-container"></div>
+      <div class="import-actions">
+        <button class="btn btn-primary" id="btn-start-import" disabled>
+          Importer les données
+        </button>
+      </div>
+    </section>
+
+    <!-- Étape 4 : Progression (injectée par import-render.js) -->
+    <section class="import-section" id="import-step-progress" hidden>
+      <h2 class="import-step-title">
+        <span class="import-step-num">4</span> Import en cours…
+      </h2>
+      <div id="import-progress-container"></div>
+    </section>
+
+    <!-- Étape 5 : Rapport final (injecté par import-render.js) -->
+    <section class="import-section" id="import-step-report" hidden>
+      <h2 class="import-step-title">
+        <span class="import-step-num">5</span> Rapport d'import
+      </h2>
+      <div id="import-report-container"></div>
+      <div class="import-actions">
+        <button class="btn btn-ghost" id="btn-import-reset">
+          Importer un autre fichier
+        </button>
+        <a class="btn btn-primary" href="#/prospects">Voir les prospects</a>
+      </div>
+    </section>
+
+  </main>
+</div>
