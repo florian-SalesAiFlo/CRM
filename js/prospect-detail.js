@@ -161,7 +161,7 @@ function renderContacts(contacts) {
   }
 
   tbody.innerHTML = contacts.map(c => {
-    const role = ROLES_EMPLOYE.find(r => r.value === c.role_employe)?.label ?? '—';
+    const role = ROLES_EMPLOYE.find(r => r.value === c.role)?.label ?? '—';
     return `<tr>
       <td>${esc(c.nom)}</td>
       <td>${esc(role)}</td>
