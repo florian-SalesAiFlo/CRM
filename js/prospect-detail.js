@@ -11,6 +11,13 @@ import { getStatut, getRetour, getCanal, METIERS, ROLES_EMPLOYE, STATUTS_RAPPEL,
 import { renderRappels, bindRappelActions } from './rappel-render.js';
 let _prospect = null;
 
+// ── SVG icônes actions (16×16, réutilisées dans les 3 sections) ──
+const SVG = {
+  edit:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+  delete: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`,
+  check:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`,
+};
+
 // ── Init ──────────────────────────────────────────────────
 export async function initProspectDetail() {
   const id = window.CRM?.routeParams?.id;
@@ -174,13 +181,13 @@ function renderContacts(contacts) {
       <td>${esc(c.nom)}</td><td>${esc(role)}</td>
       <td>${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '—'}</td>
       <td>${esc(c.telephone ?? '—')}</td>
-      <td class="contact-actions">
-        <button class="btn btn-sm btn-ghost contact-edit"
-                data-contact='${encoded}'
-                title="Modifier" aria-label="Modifier ${esc(c.nom)}">✏️</button>
-        <button class="btn btn-sm btn-ghost contact-delete"
-                data-id="${esc(c.id)}" data-nom="${esc(c.nom)}"
-                title="Supprimer" aria-label="Supprimer ${esc(c.nom)}">🗑️</button>
+      <td class="col-actions">
+        <span class="row-actions">
+          <button class="row-action-btn row-action-edit contact-edit"
+                  data-contact='${encoded}' title="Modifier" aria-label="Modifier ${esc(c.nom)}">${SVG.edit}</button>
+          <button class="row-action-btn row-action-delete contact-delete"
+                  data-id="${esc(c.id)}" data-nom="${esc(c.nom)}" title="Supprimer" aria-label="Supprimer ${esc(c.nom)}">${SVG.delete}</button>
+        </span>
       </td></tr>`;
   }).join('');
 }
@@ -198,12 +205,13 @@ function renderTimeline(interactions) {
     const date    = new Date(i.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
     const auteur  = i.profiles?.nom ?? 'Inconnu';
     const encoded = esc(JSON.stringify(i));
-    const actions = `<span class="interaction-actions">` +
-      `<button class="btn btn-sm btn-ghost interaction-edit" data-interaction='${encoded}' title="Modifier">✏️</button>` +
-      `<button class="btn btn-sm btn-ghost interaction-delete" data-id="${esc(i.id)}" title="Supprimer">🗑️</button>` +
+    const actions = `<span class="row-actions">` +
+      `<button class="row-action-btn row-action-edit interaction-edit" data-interaction='${encoded}' title="Modifier">${SVG.edit}</button>` +
+      `<button class="row-action-btn row-action-delete interaction-delete" data-id="${esc(i.id)}" title="Supprimer">${SVG.delete}</button>` +
       `</span>`;
-    return `<div class="tl-item"><div class="tl-icon ${canal.tlClass}">${canal.icon}</div>` +
-      `<div class="tl-body"><div class="tl-header"><span class="tl-title">${canal.label}</span>` +
+    return `<div class="tl-item canal-${esc(i.canal ?? '')}">` +
+      `<div class="tl-body"><div class="tl-header">` +
+      `<span class="tl-title">${canal.label}</span>` +
       `<span class="tl-date">${date}</span>${actions}</div>` +
       `<div class="tl-comment">${esc(i.contenu ?? '')}</div>` +
       `<div class="tl-meta">${esc(auteur)}</div></div></div>`;

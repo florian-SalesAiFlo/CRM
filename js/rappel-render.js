@@ -17,6 +17,13 @@ function esc(str) {
   );
 }
 
+// ── SVG icônes ────────────────────────────────────────────
+const SVG = {
+  check:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`,
+  edit:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+  delete: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`,
+};
+
 // ── Rendu ─────────────────────────────────────────────────
 
 /**
@@ -35,22 +42,20 @@ export function renderRappels(rappels) {
     const date    = new Date(r.date_rappel).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
     const isFait  = r.statut === 'fait';
     const encoded = esc(JSON.stringify(r));
+    const doneBtn = !isFait
+      ? `<button class="row-action-btn row-action-done rappel-done" data-id="${esc(r.id)}" title="Marquer comme fait">${SVG.check}</button>`
+      : '';
     return `<div class="rappel-item${isFait ? ' rappel-fait' : ''}">
-      <div class="rappel-info">
-        <div class="rappel-date">${date}</div>
-        <div class="rappel-motif">${esc(r.motif ?? '—')}</div>
-      </div>
-      <div class="rappel-actions">
-        ${!isFait ? `<button class="btn btn-sm btn-ghost rappel-done" data-id="${esc(r.id)}"
-          title="Marquer comme fait" aria-label="Marquer comme fait">✅</button>` : ''}
-        <button class="btn btn-sm btn-ghost rappel-edit"
-          data-rappel='${encoded}'
-          title="Modifier" aria-label="Modifier le rappel">✏️</button>
-        <button class="btn btn-sm btn-ghost rappel-delete"
-          data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}"
-          title="Supprimer" aria-label="Supprimer le rappel">🗑️</button>
-      </div>
-      ${st ? `<span class="badge badge-${st.badgeType} rappel-badge">${st.label}</span>` : ''}
+      <div class="rappel-date">${date}</div>
+      <div class="rappel-motif">${esc(r.motif ?? '—')}</div>
+      ${st ? `<span class="badge badge-${st.badgeType}">${st.label}</span>` : '<span></span>'}
+      <span class="row-actions">
+        ${doneBtn}
+        <button class="row-action-btn row-action-edit rappel-edit"
+          data-rappel='${encoded}' title="Modifier">${SVG.edit}</button>
+        <button class="row-action-btn row-action-delete rappel-delete"
+          data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}" title="Supprimer">${SVG.delete}</button>
+      </span>
     </div>`;
   }).join('');
 }

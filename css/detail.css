@@ -1,0 +1,99 @@
+/* =======================================================
+   detail.css — Styles fiche prospect (CRM-43 polish)
+   Complémente layout.css et components.css.
+   ======================================================= */
+
+/* ── Body 2 colonnes ─────────────────────────────────────── */
+.detail-body {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+  align-items: start;
+}
+.detail-main  { display: flex; flex-direction: column; gap: var(--space-6); }
+.detail-aside { display: flex; flex-direction: column; gap: var(--space-6); }
+@media (max-width: 900px) {
+  .detail-body { grid-template-columns: 1fr; }
+}
+
+/* ── Header DHC : séparateurs entre items ────────────────── */
+.dhc-item + .dhc-item::before {
+  content: '·';
+  margin-right: var(--space-4);
+  color: var(--color-border-strong);
+}
+
+/* ── Boutons d'actions unifiés ───────────────────────────── */
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.row-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+              background var(--transition-fast);
+}
+.row-action-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.row-action-btn:hover { background: var(--color-surface-alt); }
+.row-action-edit:hover   { color: var(--color-primary);  border-color: var(--color-primary-muted); }
+.row-action-delete:hover { color: var(--color-danger);   border-color: var(--color-danger); }
+.row-action-done:hover   { color: var(--color-success);  border-color: var(--color-success); }
+
+/* ── Contacts : colonne actions ──────────────────────────── */
+.col-actions { width: 72px; text-align: right; padding-right: var(--space-4) !important; }
+
+/* ── Timeline : bordure gauche colorée par canal ─────────── */
+.tl-item {
+  display: flex;
+  gap: var(--space-3);
+  border-left: 3px solid var(--color-border);
+  padding-left: var(--space-3);
+  margin-left: var(--space-2);
+}
+.tl-item.canal-email     { border-left-color: var(--color-success); }
+.tl-item.canal-telephone { border-left-color: var(--color-warning); }
+.tl-item.canal-linkedin  { border-left-color: #0077b5; }
+.tl-item.canal-messagerie { border-left-color: var(--color-info); }
+.tl-item.canal-note_interne { border-left-color: var(--color-text-tertiary); }
+
+/* tl-header aligne : titre | date | actions */
+.tl-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.tl-header .tl-date { margin-left: auto; }
+
+/* ── Rappels : layout ligne ──────────────────────────────── */
+.rappel-item {
+  display: grid;
+  grid-template-columns: 72px 1fr auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+.rappel-item:last-child { border-bottom: none; }
+.rappel-date  { font-size: var(--text-xs); color: var(--color-text-tertiary); font-variant-numeric: tabular-nums; }
+.rappel-motif { font-size: var(--text-sm); font-weight: 500; color: var(--color-text); }
+.rappel-fait  { opacity: .55; }
+.rappel-fait .rappel-motif { text-decoration: line-through; color: var(--color-text-tertiary); }
+
+/* ── Info grid : reset du rule .info-field:nth-last-child ─── */
+/* On garde la grille 2 col de components.css, on améliore le spacing */
+.info-value { font-size: var(--text-base); }
