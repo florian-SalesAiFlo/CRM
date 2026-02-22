@@ -23,13 +23,6 @@ function opt(list, current) {
   ).join('');
 }
 
-function field(label, inputHtml, full) {
-  return `<div class="info-field${full ? ' info-field--full' : ''}">
-    <div class="info-label">${label}</div>
-    <div class="info-value">${inputHtml}</div>
-  </div>`;
-}
-
 // ── Rendu formulaire inline ───────────────────────────────
 
 function renderEditGrid(p) {
@@ -37,59 +30,110 @@ function renderEditGrid(p) {
   const statutOpts  = opt(STATUTS_PROSPECT, p.statut);
   const retourOpts  = `<option value="">— Aucun —</option>${opt(RETOURS_PROSPECT, p.retour)}`;
 
-  const html = `
-    <form id="form-edit-prospect" novalidate style="display:grid;grid-template-columns:1fr 1fr;gap:0">
-      ${field('Nom *',
-        `<input class="ef-input" id="ef-nom" name="nom" type="text" value="${esc(p.nom)}" required>`
-      )}
-      ${field('SIRET',
-        `<input class="ef-input" id="ef-siret" name="siret" type="text" value="${esc(p.siret ?? '')}" maxlength="14">`
-      )}
-      ${field('Métier',
-        `<select class="ef-input" id="ef-metier" name="metier"><option value="">— Sélectionner —</option>${metierOpts}</select>`
-      )}
-      ${field('Statut',
-        `<select class="ef-input" id="ef-statut" name="statut">${statutOpts}</select>`
-      )}
-      ${field('Retour',
-        `<select class="ef-input" id="ef-retour" name="retour">${retourOpts}</select>`
-      )}
-      ${field('Téléphone',
-        `<input class="ef-input" id="ef-telephone" name="telephone" type="tel" value="${esc(p.telephone ?? '')}">`
-      )}
-      ${field('Email',
-        `<input class="ef-input" id="ef-email" name="email" type="email" value="${esc(p.email ?? '')}">`
-      )}
-      ${field('Site web',
-        `<input class="ef-input" id="ef-site" name="site_web" type="url" value="${esc(p.site_web ?? '')}">`
-      )}
-      ${field('Adresse',
-        `<input class="ef-input" id="ef-adresse" name="adresse" type="text" value="${esc(p.adresse ?? '')}">`,
-        true
-      )}
-      ${field('Code postal',
-        `<input class="ef-input" id="ef-cp" name="code_postal" type="text" value="${esc(p.code_postal ?? '')}" maxlength="10">`
-      )}
-      ${field('Ville',
-        `<input class="ef-input" id="ef-ville" name="ville" type="text" value="${esc(p.ville ?? '')}">`
-      )}
-      ${field('Commentaire',
-        `<textarea class="ef-input ef-textarea" id="ef-commentaire" name="commentaire" rows="3">${esc(p.commentaire ?? '')}</textarea>`,
-        true
-      )}
-      <div class="info-field info-field--full ef-actions-row">
+  return `
+    <form id="form-edit-prospect" novalidate class="edit-grid">
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-nom">Nom <span aria-hidden="true">*</span></label>
+        <input class="ef-input" id="ef-nom" name="nom" type="text"
+               value="${esc(p.nom)}" required>
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-siret">SIRET</label>
+        <input class="ef-input" id="ef-siret" name="siret" type="text"
+               value="${esc(p.siret ?? '')}" maxlength="14">
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-metier">Métier</label>
+        <select class="ef-input" id="ef-metier" name="metier">
+          <option value="">— Sélectionner —</option>
+          ${metierOpts}
+        </select>
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-statut">Statut</label>
+        <select class="ef-input" id="ef-statut" name="statut">
+          ${statutOpts}
+        </select>
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-retour">Retour</label>
+        <select class="ef-input" id="ef-retour" name="retour">
+          ${retourOpts}
+        </select>
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-telephone">Téléphone</label>
+        <input class="ef-input" id="ef-telephone" name="telephone" type="tel"
+               value="${esc(p.telephone ?? '')}">
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-email">Email</label>
+        <input class="ef-input" id="ef-email" name="email" type="email"
+               value="${esc(p.email ?? '')}">
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-site">Site web</label>
+        <input class="ef-input" id="ef-site" name="site_web" type="url"
+               value="${esc(p.site_web ?? '')}">
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-adresse">Adresse</label>
+        <input class="ef-input" id="ef-adresse" name="adresse" type="text"
+               value="${esc(p.adresse ?? '')}">
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-cp">Code postal</label>
+        <input class="ef-input" id="ef-cp" name="code_postal" type="text"
+               value="${esc(p.code_postal ?? '')}" maxlength="10">
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-ville">Ville</label>
+        <input class="ef-input" id="ef-ville" name="ville" type="text"
+               value="${esc(p.ville ?? '')}">
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label" for="ef-commentaire">Commentaire</label>
+        <textarea class="ef-input ef-textarea" id="ef-commentaire"
+                  name="commentaire" rows="3">${esc(p.commentaire ?? '')}</textarea>
+      </div>
+
+      <div class="ef-actions">
         <button type="button" class="btn btn-ghost" id="ef-cancel">Annuler</button>
         <button type="submit" class="btn btn-primary" id="ef-submit">
           <span id="ef-submit-text">Enregistrer</span>
         </button>
       </div>
+
     </form>
 
     <style>
-      /* Inputs s'intègrent dans info-value */
+      .edit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-3) var(--space-4);
+        padding: var(--space-4);
+      }
+      .ef-field { display: flex; flex-direction: column; gap: var(--space-1); }
+      .ef-label {
+        font-size: var(--text-xs); font-weight: 500;
+        color: var(--color-text-tertiary);
+        text-transform: uppercase; letter-spacing: .05em;
+      }
       .ef-input {
         font-family: var(--font-sans); font-size: var(--text-sm);
-        color: var(--color-text); background: var(--color-bg);
+        color: var(--color-text); background: var(--color-surface);
         border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm);
         padding: var(--space-2) var(--space-3);
         transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -100,16 +144,12 @@ function renderEditGrid(p) {
         box-shadow: var(--shadow-focus);
       }
       .ef-textarea { resize: vertical; min-height: 72px; }
-      /* Full width fields */
-      .info-field--full { grid-column: 1 / -1; }
-      /* Actions row */
-      .ef-actions-row {
+      .ef-actions {
+        grid-column: 1 / -1;
         display: flex; gap: var(--space-3); justify-content: center;
-        padding-top: var(--space-4); border-bottom: none !important;
+        padding-top: var(--space-3); border-top: 1px solid var(--color-border);
       }
     </style>`;
-
-  return html;
 }
 
 // ── API publique ──────────────────────────────────────────
