@@ -38,7 +38,7 @@ function renderEditGrid(p) {
   const retourOpts  = `<option value="">— Aucun —</option>${opt(RETOURS_PROSPECT, p.retour)}`;
 
   const html = `
-    <form id="form-edit-prospect" novalidate>
+    <form id="form-edit-prospect" novalidate style="display:grid;grid-template-columns:1fr 1fr;gap:0">
       ${field('Nom *',
         `<input class="ef-input" id="ef-nom" name="nom" type="text" value="${esc(p.nom)}" required>`
       )}
