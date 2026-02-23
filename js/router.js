@@ -7,7 +7,6 @@
 import { initSupabase }                      from './supabase-client.js';
 import { initUIComponents }                  from './ui-components.js';
 import { openPanel, closePanels, closeModal } from './ui-panels.js';
-import { initAuth, isAuthenticated }          from './auth.js';
 
 // ── Constantes de routing ─────────────────────────────────
 
@@ -40,16 +39,6 @@ let _supabase = null;
 export async function initRouter() {
   _supabase = initSupabase();
   initAuth();
-
-  // DEV ONLY — auto-login silencieux pour que RLS fonctionne
-  // À supprimer avant mise en prod
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) {
-    await _supabase.auth.signInWithPassword({
-      email: 'florian@salesaiflo.com',
-      password: 'Test1234'
-    });
-  }
 
   initUIComponents();
 
