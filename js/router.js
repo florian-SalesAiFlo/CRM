@@ -38,7 +38,7 @@ let _supabase = null;
  */
 export async function initRouter() {
   _supabase = initSupabase();
-  initAuth();
+
 
   initUIComponents();
 
