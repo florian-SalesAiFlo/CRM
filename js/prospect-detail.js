@@ -3,11 +3,11 @@
    Coordinateur : charge les données, délègue aux sous-modules.
    ======================================================= */
 import { fetchProspectById, fetchInteractions, fetchRappels, fetchContacts,
-         deleteProspect, deleteContact, deleteInteraction } from './supabase-client.js';
-import { toast }          from './ui-components.js';
+         deleteProspect, deleteContact, deleteInteraction, updateProspect } from './supabase-client.js';
+import { toast, selectInline, selectStatut } from './ui-components.js';
 import { openPanel, modal, closeModal } from './ui-panels.js';
 import { getStatut, getRetour, getCanal, METIERS, ROLES_EMPLOYE, STATUTS_RAPPEL,
-         CANAUX_INTERACTION } from './config.js';
+         CANAUX_INTERACTION, VOLUMES_CANDIDATURES, RETOURS_PROSPECT } from './config.js';
 import { renderRappels, bindRappelActions } from './rappel-render.js';
 let _prospect = null;
 
@@ -17,7 +17,6 @@ const SVG = {
   delete: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`,
   check:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`,
 };
-
 // ── Init ──────────────────────────────────────────────────
 export async function initProspectDetail() {
   const id = window.CRM?.routeParams?.id;
@@ -43,20 +42,17 @@ async function loadProspect(id) {
   renderTimeline(interactions ?? []);
   renderRappels(rappels ?? []);
   bindPanelButtons(id);
+  bindInlineSelects(id);
 }
-
 // ── Header condensé ───────────────────────────────────────
 function renderHeader(p) {
   const fill = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
   fill('detail-nom', p.nom);
   const badgesEl = document.getElementById('detail-badges');
   if (badgesEl) {
-    const st = p.statut ? getStatut(p.statut) : null;
-    const re = p.retour ? getRetour(p.retour) : null;
-    badgesEl.innerHTML = [
-      st ? `<span class="badge badge-${st.badgeType}">${st.label}</span>` : '',
-      re ? `<span class="badge badge-${re.badgeType}">${re.label}</span>` : '',
-    ].join('');
+    badgesEl.innerHTML =
+      selectStatut(p.statut ?? '') +
+      selectInline('retour', RETOURS_PROSPECT, p.retour ?? '', 'select-retour');
   }
   const metierLabel = METIERS.find(m => m.value === p.metier)?.label ?? p.metier ?? null;
   fill('dhc-siret',  p.siret     ? `🏢 ${formatSiret(p.siret)}` : null);
@@ -89,7 +85,6 @@ function renderHeader(p) {
 
 // ── Suppression ───────────────────────────────────────────
 const MODAL_ID = 'modal-delete-prospect';
-
 /** Attache le bouton Supprimer (cloné pour éviter accumulation d'écouteurs). */
 function bindDeleteButton(prospect) {
   const btn = document.getElementById('btn-delete-prospect');
@@ -144,26 +139,19 @@ async function confirmDelete(prospect) {
 function renderInfoGrid(p) {
   const grid = document.getElementById('info-grid');
   if (!grid) return;
-  const metierLabel = METIERS.find(m => m.value === p.metier)?.label ?? p.metier ?? null;
-  const fields = [
-    { label: 'Nom',         value: p.nom },
-    { label: 'SIRET',       value: formatSiret(p.siret) },
-    { label: 'Métier',      value: metierLabel },
-    { label: 'Téléphone',   value: p.telephone },
-    { label: 'Email',       value: p.email, link: p.email ? `mailto:${p.email}` : null },
-    { label: 'Site web',    value: p.site_web, link: p.site_web },
-    { label: 'Adresse',     value: p.adresse },
-    { label: 'Code postal', value: p.code_postal },
-    { label: 'Ville',       value: p.ville },
-    { label: 'Commentaire', value: p.commentaire },
-  ];
-  grid.innerHTML = fields.map(f => `
-    <div class="info-field">
-      <div class="info-label">${esc(f.label)}</div>
-      <div class="info-value${f.value ? '' : ' empty'}">
-        ${f.value ? (f.link ? `<a href="${esc(f.link)}" target="_blank" rel="noopener">${esc(f.value)}</a>` : esc(f.value)) : '—'}
-      </div>
-    </div>`).join('');
+  const ville = [p.adresse, p.code_postal, p.ville].filter(Boolean).join(', ');
+  const field  = (label, html) => `<div class="info-field"><div class="info-label">${label}</div><div class="info-value">${html}</div></div>`;
+  const text   = v => v ? esc(v) : '<span class="empty">—</span>';
+  const link   = (v, href) => v ? `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(v)}</a>` : '<span class="empty">—</span>';
+  grid.innerHTML =
+    field('Nom',         text(p.nom)) +
+    field('SIRET',       text(formatSiret(p.siret))) +
+    field('Métier',      selectInline('metier',               METIERS,               p.metier ?? '')) +
+    field('Volume',      selectInline('volume_candidatures',  VOLUMES_CANDIDATURES,  p.volume_candidatures ?? '')) +
+    field('Téléphone',   text(p.telephone)) +
+    field('Email',       p.email ? link(p.email, `mailto:${p.email}`) : '<span class="empty">—</span>') +
+    field('Site web',    p.site_web ? link(p.site_web, p.site_web) : '<span class="empty">—</span>') +
+    field('Adresse',     text(ville)) + field('Commentaire', text(p.commentaire));
 }
 
 // ── Contacts ──────────────────────────────────────────────
@@ -221,7 +209,6 @@ function renderTimeline(interactions) {
 // ── Panels boutons ────────────────────────────────────────
 function bindPanelButtons(prospectId) {
   const refresh = () => loadProspect(prospectId);
-
   document.getElementById('btn-new-contact')?.addEventListener('click', async () => {
     const { initContactPanel } = await import('./contact-form.js');
     initContactPanel(prospectId, refresh);
@@ -282,6 +269,26 @@ function bindPanelButtons(prospectId) {
 
   // Délégation rappels (via rappel-render.js)
   bindRappelActions(prospectId, refresh);
+}
+// ── Selects inline (métier, volume, statut, retour) ──────
+function bindInlineSelects(prospectId) {
+  const root = document.getElementById('detail-content');
+  if (!root) return;
+  root.addEventListener('change', async (e) => {
+    const sel = e.target;
+    if (!(sel instanceof HTMLSelectElement) || !sel.dataset.name) return;
+    const { name: field, current } = sel.dataset;
+    const value = sel.value;
+    const { error } = await updateProspect(prospectId, { [field]: value });
+    if (error) { toast(`Erreur : ${error.message}`, 'error'); sel.value = current ?? ''; return; }
+    sel.dataset.current = value;
+    if (field === 'metier') {
+      const dhc = document.getElementById('dhc-metier');
+      const label = METIERS.find(m => m.value === value)?.label ?? value;
+      if (dhc) dhc.textContent = label ? `🔧 ${label}` : '—';
+    }
+    toast('Mis à jour.', 'success');
+  });
 }
 
 // ── Utils ─────────────────────────────────────────────────

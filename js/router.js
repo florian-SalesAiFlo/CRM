@@ -39,9 +39,23 @@ let _supabase = null;
  */
 export async function initRouter() {
   _supabase = initSupabase();
-  // initAuth();
+  initAuth();
+
+  // DEV ONLY — auto-login silencieux pour que RLS fonctionne
+  // À supprimer avant mise en prod
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) {
+    await _supabase.auth.signInWithPassword({
+      email: 'florian@salesaiflo.com',
+      password: 'Test1234'
+    });
+  }
 
   initUIComponents();
+
+  // Recherche globale (permanente, pas liée à une page)
+  const { initSearch } = await import('./search.js');
+  initSearch();
 
   // Expose les fonctions panels dans le namespace global.
   // Pattern documenté dans SKILL.md — communication inter-modules sans bundler.
@@ -235,6 +249,7 @@ function initPageScripts(pattern) {
     case '/prospects':    return initProspectListPage();
     case '/prospect/:id': return initProspectDetailPage();
     case '/dashboard':    return initDashboardPage();
+    case '/rappels':      return initRappelsPageRoute();
     case '/import':       return initImportPage();
     default:              break;
   }
@@ -266,6 +281,11 @@ async function initProspectDetailPage() {
 async function initDashboardPage() {
   const { initDashboard } = await import('./dashboard.js');
   initDashboard();
+}
+
+async function initRappelsPageRoute() {
+  const { initRappelsPage } = await import('./rappels-page.js');
+  initRappelsPage();
 }
 
 async function initImportPage() {

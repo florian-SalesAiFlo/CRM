@@ -4,7 +4,7 @@
    Tableau : 10 dernières interactions globales.
    ======================================================= */
 
-import { fetchProspectsWithStats, fetchRappelsDuJour, fetchRecentInteractions }
+import { fetchProspectsWithStats, fetchRappelsDuJour, fetchRecentInteractions, updateRappel }
   from './supabase-client.js';
 import { toast }   from './ui-components.js';
 import { getCanal } from './config.js';
@@ -31,6 +31,7 @@ export async function initDashboard() {
 
   renderKPIs(prospects ?? [], rappels ?? []);
   renderActivites(activites ?? []);
+  renderRappelsDuJour(rappels ?? []);
 }
 
 // ── Date courante ─────────────────────────────────────────
@@ -119,6 +120,46 @@ function renderActivites(interactions) {
         <td style="color:var(--color-text-secondary)">${esc(auteur)}</td>
       </tr>`;
   }).join('');
+}
+
+// ── Rappels du jour ───────────────────────────────────────
+
+function renderRappelsDuJour(rappels) {
+  const body  = document.getElementById('dash-rappels-body');
+  const count = document.getElementById('dash-rappels-count');
+  if (!body) return;
+  if (count) count.textContent = rappels.length;
+  const now = new Date().setHours(0, 0, 0, 0);
+  if (!rappels.length) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎉</div><p>Aucun rappel pour aujourd'hui</p></div>`;
+    return;
+  }
+  const enRetard = rappels.filter(r => new Date(r.date_rappel).setHours(0,0,0,0) < now);
+  const today    = rappels.filter(r => new Date(r.date_rappel).setHours(0,0,0,0) >= now);
+  const section  = (title, items, cls) => !items.length ? '' :
+    `<div class="dash-rappels-group ${cls}"><div class="dash-rappels-header">${title} <span class="badge badge-${cls==='overdue'?'danger':'info'}">${items.length}</span></div>` +
+    items.map(r => rappelRow(r)).join('') + '</div>';
+  body.innerHTML = section('En retard', enRetard, 'overdue') + section('Aujourd\'hui', today, 'today');
+  body.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.dash-done');
+    if (!btn) return;
+    btn.disabled = true;
+    const { error } = await updateRappel(btn.dataset.id, { statut: 'effectue' });
+    if (error) { toast(`Erreur : ${error.message}`, 'error'); btn.disabled = false; return; }
+    btn.closest('tr,div.rappel-row')?.remove();
+    toast('Rappel marqué fait.', 'success');
+  }, { once: true });
+}
+
+function rappelRow(r) {
+  const date = new Date(r.date_rappel).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' });
+  const nom  = r.prospects?.nom ?? '—';
+  const id   = r.prospect_id;
+  return `<div class="rappel-row">` +
+    `<span class="rappel-date">${date}</span>` +
+    `<span class="rappel-prospect">${id ? `<a href="#/prospect/${esc(id)}">${esc(nom)}</a>` : esc(nom)}</span>` +
+    `<span class="rappel-motif">${esc(r.motif ?? '—')}</span>` +
+    `<button class="btn btn-xs btn-ghost dash-done" data-id="${esc(r.id)}">✓ Fait</button></div>`;
 }
 
 // ── Utils ─────────────────────────────────────────────────
