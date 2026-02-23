@@ -41,16 +41,6 @@ export async function initRouter() {
   _supabase = initSupabase();
   initAuth();
 
-  // DEV ONLY — auto-login silencieux pour que RLS fonctionne
-  // À supprimer avant mise en prod
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) {
-    await _supabase.auth.signInWithPassword({
-      email: 'florian@salesaiflo.com',
-      password: 'Test1234'
-    });
-  }
-
   initUIComponents();
 
   // Expose les fonctions panels dans le namespace global.
