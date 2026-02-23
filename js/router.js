@@ -234,12 +234,18 @@ function updateSidebarActive(currentPath) {
  */
 function initPageScripts(pattern) {
   switch (pattern) {
+    case '/login':        return initLoginPage();
     case '/prospects':    return initProspectListPage();
     case '/prospect/:id': return initProspectDetailPage();
     case '/dashboard':    return initDashboardPage();
     case '/import':       return initImportPage();
     default:              break;
   }
+}
+
+async function initLoginPage() {
+  const { initLogin } = await import('./login.js');
+  initLogin();
 }
 
 async function initProspectListPage() {
