@@ -7,6 +7,31 @@
 
 import { getStatut, getCanal, STATUTS_PROSPECT } from './config.js';
 
+// ── Badge Select ──────────────────────────────────────────
+
+/**
+ * Génère un badge-select : badge coloré cliquable qui ouvre un dropdown custom.
+ * Dispatche un CustomEvent 'badge-select-change' sur l'élément quand la valeur change.
+ * @param {string} name            - data-name du champ (ex: 'statut')
+ * @param {Array}  options         - [{value, label, badgeType}]
+ * @param {string} selectedValue   - valeur initiale sélectionnée
+ * @param {string} [extraClass]    - classe CSS additionnelle
+ * @returns {string} HTML
+ */
+export function badgeSelect(name, options, selectedValue, extraClass = '') {
+  const sel = options.find(o => o.value === selectedValue) ?? options[0];
+  const optionsHTML = options.map(o =>
+    `<button class="badge-select-option" data-value="${o.value}" data-badge-type="${o.badgeType ?? 'secondary'}">${o.label}</button>`
+  ).join('');
+  return `
+    <div class="badge-select ${extraClass}" data-name="${name}" data-current="${sel.value}">
+      <button class="badge-select-trigger badge badge-${sel.badgeType ?? 'secondary'}" type="button">
+        ${sel.label} ▾
+      </button>
+      <div class="badge-select-dropdown">${optionsHTML}</div>
+    </div>`.trim();
+}
+
 // ── Badge ─────────────────────────────────────────────────
 
 /**
@@ -33,8 +58,8 @@ export function badgeStatut(value) {
 
 /**
  * Génère un <select> inline avec highlight couleur selon valeur.
- * @param {string} name
- * @param {Array}  options
+ * @param {string} name           - data-name du champ
+ * @param {Array}  options        - [{value, label, hlClass?}]
  * @param {string} selectedValue
  * @param {string} [extraClass]
  * @returns {string} HTML
@@ -67,8 +92,8 @@ export function selectStatut(selectedValue) {
  * Génère une card avec header et body.
  * @param {string}  title
  * @param {string}  bodyHTML
- * @param {string}  [headerExtra]
- * @param {boolean} [flush]
+ * @param {string}  [headerExtra] - HTML additionnel dans le header
+ * @param {boolean} [flush]       - Pas de padding sur le body
  * @returns {string} HTML
  */
 export function card(title, bodyHTML, headerExtra = '', flush = false) {
@@ -85,7 +110,7 @@ export function card(title, bodyHTML, headerExtra = '', flush = false) {
  * Affiche une notification toast temporaire dans le DOM.
  * @param {string} message
  * @param {'success'|'error'|'info'} [type]
- * @param {number} [duration]
+ * @param {number} [duration] - ms avant disparition
  */
 export function toast(message, type = 'info', duration = 3000) {
   const container = getOrCreateToastContainer();
@@ -120,8 +145,8 @@ function getOrCreateToastContainer() {
  * @param {string} p.canal
  * @param {string} p.contenu
  * @param {string} p.auteur
- * @param {string} p.date
- * @param {string} [p.titre]
+ * @param {string} p.date         - date formatée
+ * @param {string} [p.titre]      - override label canal
  * @param {string} [p.destinataire]
  * @returns {string} HTML
  */
@@ -164,20 +189,67 @@ export function initUIComponents() {
 }
 
 /**
- * Gère les clics globaux pour fermeture panels/modals.
+ * Gère les clics globaux pour fermeture panels/modals et badge-selects.
+ * Délègue à ui-panels.js via window.__uiPanels.
  * @param {MouseEvent} e
  */
 function handleGlobalClick(e) {
   const { closePanels, closeModal } = window.__uiPanels ?? {};
 
-  if (e.target.id === 'slide-overlay')         { closePanels?.(); return; }
-  if (e.target.closest('[data-panel-close]'))   { closePanels?.(); return; }
+  if (e.target.id === 'slide-overlay')        { closePanels?.(); return; }
+  if (e.target.closest('[data-panel-close]')) { closePanels?.(); return; }
 
   const overlay = e.target.closest('.modal-overlay');
-  if (overlay && e.target === overlay)          { closeModal?.(overlay.dataset.modal); return; }
+  if (overlay && e.target === overlay) { closeModal?.(overlay.dataset.modal); return; }
 
   const mc = e.target.closest('[data-modal-close]');
-  if (mc) closeModal?.(mc.dataset.modalClose);
+  if (mc) { closeModal?.(mc.dataset.modalClose); return; }
+
+  // Badge-select : toggle ou fermeture
+  const trigger = e.target.closest('.badge-select-trigger');
+  const option  = e.target.closest('.badge-select-option');
+
+  if (trigger) {
+    const parent = trigger.closest('.badge-select');
+    const isOpen = parent.classList.contains('open');
+    closeAllBadgeSelects();
+    if (!isOpen) parent.classList.add('open');
+    return;
+  }
+
+  if (option) { handleBadgeSelectOption(option); return; }
+
+  closeAllBadgeSelects();
+}
+
+/**
+ * Ferme tous les badge-selects ouverts dans le document.
+ */
+function closeAllBadgeSelects() {
+  document.querySelectorAll('.badge-select.open').forEach(el => el.classList.remove('open'));
+}
+
+/**
+ * Applique la sélection d'une option badge-select.
+ * Met à jour le trigger, data-current et dispatche un CustomEvent.
+ * @param {HTMLElement} option - .badge-select-option cliqué
+ */
+function handleBadgeSelectOption(option) {
+  const parent    = option.closest('.badge-select');
+  const trigger   = parent.querySelector('.badge-select-trigger');
+  const value     = option.dataset.value;
+  const badgeType = option.dataset.badgeType ?? 'secondary';
+  const label     = option.textContent.trim();
+
+  parent.dataset.current = value;
+  trigger.textContent    = `${label} ▾`;
+  trigger.className      = `badge-select-trigger badge badge-${badgeType}`;
+  parent.classList.remove('open');
+
+  parent.dispatchEvent(new CustomEvent('badge-select-change', {
+    bubbles: true,
+    detail: { name: parent.dataset.name, value },
+  }));
 }
 
 /**

@@ -385,15 +385,3 @@
 .login-footer { font-size: var(--text-xs); color: var(--color-text-tertiary); text-align: center; margin: 0; }
 
 /* ── Actions inline fiche prospect → voir detail.css ────── */
-
-/* ── Recherche globale sidebar ───────────────────────── */
-.sidebar-search { position: relative; }
-.search-dropdown { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); overflow: hidden; }
-.search-dropdown.open { display: block; }
-.search-result-item { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: var(--space-3) var(--space-4); text-align: left; background: none; border: none; cursor: pointer; color: var(--color-text); border-bottom: 1px solid var(--color-border-light); }
-.search-result-item:last-child { border-bottom: none; }
-.search-result-item:hover { background: var(--color-surface-alt); }
-.sri-nom { font-size: var(--text-sm); font-weight: 500; }
-.sri-meta { font-size: var(--text-xs); color: var(--color-text-tertiary); }
-.search-result-empty { padding: var(--space-4); font-size: var(--text-sm); color: var(--color-text-tertiary); text-align: center; }
-/* Dashboard rappels + overdue → voir detail.css */
