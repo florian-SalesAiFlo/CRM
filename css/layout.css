@@ -92,7 +92,7 @@ body {
 .sidebar-search {
   padding: 0 var(--space-3) var(--space-3);
   flex-shrink: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 .sidebar-search input {
   width: 100%;
