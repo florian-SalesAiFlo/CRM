@@ -7,6 +7,7 @@
 import { initSupabase }                      from './supabase-client.js';
 import { initUIComponents }                  from './ui-components.js';
 import { openPanel, closePanels, closeModal } from './ui-panels.js';
+import { initAuth, isAuthenticated }          from './auth.js';
 
 // ── Constantes de routing ─────────────────────────────────
 
@@ -38,13 +39,9 @@ let _supabase = null;
  */
 export async function initRouter() {
   _supabase = initSupabase();
-
+  // initAuth();
 
   initUIComponents();
-
-  // Recherche globale (permanente, pas liée à une page)
-  const { initSearch } = await import('./search.js');
-  initSearch();
 
   // Expose les fonctions panels dans le namespace global.
   // Pattern documenté dans SKILL.md — communication inter-modules sans bundler.
@@ -182,14 +179,16 @@ function listenHashChange() {
 // ── Sidebar ───────────────────────────────────────────────
 
 /**
- * Initialise la sidebar : toggle collapse + délégation clics nav.
+ * Initialise la sidebar : toggle collapse + délégation clics nav + hover expand.
  */
 function initSidebar() {
-  const toggle = document.getElementById(SIDEBAR_TOGGLE);
+  const toggle  = document.getElementById(SIDEBAR_TOGGLE);
   if (toggle) toggle.addEventListener('click', toggleSidebar);
 
   const sidebar = document.getElementById(SIDEBAR_ID);
-  if (sidebar) sidebar.addEventListener('click', handleSidebarClick);
+  if (!sidebar) return;
+  sidebar.addEventListener('click', handleSidebarClick);
+  initSidebarHover(sidebar);
 }
 
 /**
@@ -203,13 +202,38 @@ function toggleSidebar() {
 }
 
 /**
+ * Initialise le comportement hover-expand sur la sidebar collapsed.
+ * mouseenter → ajoute .sidebar-hover-expand (visuel uniquement).
+ * mouseleave → retire après 300ms de délai.
+ * Le clic sur un lien retire immédiatement la classe.
+ * @param {HTMLElement} sidebar
+ */
+function initSidebarHover(sidebar) {
+  let leaveTimer = null;
+
+  sidebar.addEventListener('mouseenter', () => {
+    if (!sidebar.classList.contains('collapsed')) return;
+    clearTimeout(leaveTimer);
+    sidebar.classList.add('sidebar-hover-expand');
+  });
+
+  sidebar.addEventListener('mouseleave', () => {
+    clearTimeout(leaveTimer);
+    leaveTimer = setTimeout(() => sidebar.classList.remove('sidebar-hover-expand'), 300);
+  });
+}
+
+/**
  * Délègue les clics sur les liens de la sidebar pour le routage.
+ * Au clic, retire immédiatement sidebar-hover-expand.
  * @param {MouseEvent} e
  */
 function handleSidebarClick(e) {
   const link = e.target.closest('a[data-route]');
   if (!link) return;
   e.preventDefault();
+  const sidebar = document.getElementById(SIDEBAR_ID);
+  sidebar?.classList.remove('sidebar-hover-expand');
   window.location.hash = link.dataset.route;
 }
 
@@ -238,7 +262,6 @@ function initPageScripts(pattern) {
     case '/prospects':    return initProspectListPage();
     case '/prospect/:id': return initProspectDetailPage();
     case '/dashboard':    return initDashboardPage();
-    case '/rappels':      return initRappelsPageRoute();
     case '/import':       return initImportPage();
     default:              break;
   }
@@ -270,11 +293,6 @@ async function initProspectDetailPage() {
 async function initDashboardPage() {
   const { initDashboard } = await import('./dashboard.js');
   initDashboard();
-}
-
-async function initRappelsPageRoute() {
-  const { initRappelsPage } = await import('./rappels-page.js');
-  initRappelsPage();
 }
 
 async function initImportPage() {

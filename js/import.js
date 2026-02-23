@@ -4,7 +4,7 @@
    ======================================================= */
 
 import { createProspect, createContact } from './supabase-client.js';
-import { renderPreview, renderMapping, renderProgress, renderReport, autoMapHeader } from './import-render.js';
+import { renderPreview, renderMapping, renderProgress, renderReport, autoMapHeader, renderStepIndicator } from './import-render.js';
 
 // ── État module ───────────────────────────────────────────
 let _rows    = [];   // toutes les lignes du CSV (header inclus)
@@ -140,12 +140,13 @@ async function runImport() {
 
 // ── UI helpers ────────────────────────────────────────────
 
-/** Montre une étape, masque les autres. */
+/** Montre une étape, masque les autres + met à jour le stepper. */
 function showStep(name) {
   ['upload','preview','mapping','progress','report'].forEach(s => {
     const el = document.getElementById(`import-step-${s}`);
     if (el) el.hidden = s !== name;
   });
+  renderStepIndicator(name);
 }
 
 /** Calcule le mapping initial (auto-détection) depuis les headers. */

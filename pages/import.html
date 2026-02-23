@@ -1,58 +1,71 @@
 <!-- ========================================================
-     pages/import.html — Import CSV depuis CRM legacy
-     Chargé dans #app par router.js. JS : import.js
+     pages/import.html — Page import CSV CRM M2BPO
+     Chargé dans #app par router.js via initPageScripts().
+     PAS de <script> ici. JS : js/import.js + js/import-render.js
      ======================================================== -->
 
 <div class="page-layout">
 
-  <!-- En-tête page -->
+  <!-- ── Header ── -->
   <header class="page-header">
     <div class="page-header-left">
       <h1 class="page-title">Import CSV</h1>
     </div>
   </header>
 
-  <!-- Corps de page -->
-  <main class="import-main">
+  <!-- ── Contenu import ── -->
+  <div class="import-main" style="overflow-y:auto;flex:1">
+
+    <!-- Stepper indicateur -->
+    <div id="step-indicator" class="step-indicator" aria-label="Progression de l'import"></div>
 
     <!-- Étape 1 : Upload -->
-    <section class="import-section" id="import-step-upload">
+    <section id="import-step-upload" class="import-section">
       <h2 class="import-step-title">
-        <span class="import-step-num">1</span> Choisir le fichier CSV
+        <span class="import-step-num">1</span>
+        Sélectionner votre fichier CSV
       </h2>
-      <div class="upload-zone" id="upload-zone" role="button" tabindex="0"
-           aria-label="Zone de dépôt de fichier CSV">
+      <p class="import-step-hint">Formats acceptés : .csv (séparateur virgule ou point-virgule, encodage UTF-8).</p>
+
+      <label class="upload-zone" id="upload-zone" for="csv-file-input"
+             role="button" tabindex="0" aria-label="Zone de dépôt de fichier CSV">
+        <input class="upload-zone-input" type="file" id="csv-file-input"
+               accept=".csv,text/csv" aria-label="Sélectionner un fichier CSV">
         <div class="upload-zone-inner">
-          <span class="upload-zone-icon">📂</span>
-          <p class="upload-zone-label">Glissez votre fichier CSV ici</p>
-          <p class="upload-zone-hint">ou</p>
-          <label class="btn btn-secondary upload-zone-btn" for="csv-file-input">
-            Choisir un fichier
-          </label>
-          <input type="file" id="csv-file-input" accept=".csv,text/csv"
-                 class="upload-zone-input" aria-label="Sélectionner un fichier CSV">
+          <div class="upload-zone-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.5" aria-hidden="true"
+                 style="color:var(--color-text-tertiary)">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <p class="upload-zone-label">Glissez votre fichier ici</p>
+          <p class="upload-zone-hint">ou cliquez pour parcourir</p>
+          <span class="btn btn-ghost btn-sm upload-zone-btn" aria-hidden="true">Choisir un fichier</span>
         </div>
-        <p class="upload-zone-filename" id="upload-filename" hidden></p>
-      </div>
+      </label>
+
+      <p class="upload-zone-filename" id="upload-filename" hidden></p>
     </section>
 
-    <!-- Étape 2 : Prévisualisation (injectée par import-render.js) -->
-    <section class="import-section" id="import-step-preview" hidden>
+    <!-- Étape 2 : Aperçu -->
+    <section id="import-step-preview" class="import-section" hidden>
       <h2 class="import-step-title">
-        <span class="import-step-num">2</span> Aperçu des données
+        <span class="import-step-num">2</span>
+        Aperçu du fichier
       </h2>
-      <div id="import-preview-container"></div>
+      <div id="preview-table-wrap"></div>
     </section>
 
-    <!-- Étape 3 : Mapping colonnes (injecté par import-render.js) -->
-    <section class="import-section" id="import-step-mapping" hidden>
+    <!-- Étape 3 : Mapping -->
+    <section id="import-step-mapping" class="import-section" hidden>
       <h2 class="import-step-title">
-        <span class="import-step-num">3</span> Associer les colonnes
+        <span class="import-step-num">3</span>
+        Associer les colonnes
       </h2>
-      <p class="import-step-hint">
-        Indiquez à quel champ Cosmos correspond chaque colonne de votre fichier.
-        Les colonnes marquées <strong>—</strong> seront ignorées.
-      </p>
+      <p class="import-step-hint">Associez chaque colonne de votre fichier à un champ de l'application.</p>
       <div id="import-mapping-container"></div>
       <div class="import-actions">
         <button class="btn btn-primary" id="btn-start-import" disabled>
@@ -61,27 +74,30 @@
       </div>
     </section>
 
-    <!-- Étape 4 : Progression (injectée par import-render.js) -->
-    <section class="import-section" id="import-step-progress" hidden>
+    <!-- Étape 4 : Progression -->
+    <section id="import-step-progress" class="import-section" hidden>
       <h2 class="import-step-title">
-        <span class="import-step-num">4</span> Import en cours…
+        <span class="import-step-num">4</span>
+        Import en cours…
       </h2>
-      <div id="import-progress-container"></div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="import-progress-bar" style="width:0%"></div>
+      </div>
+      <p class="import-progress-label" id="import-progress-label">0 / 0 lignes traitées</p>
     </section>
 
-    <!-- Étape 5 : Rapport final (injecté par import-render.js) -->
-    <section class="import-section" id="import-step-report" hidden>
+    <!-- Étape 5 : Rapport -->
+    <section id="import-step-report" class="import-section" hidden>
       <h2 class="import-step-title">
-        <span class="import-step-num">5</span> Rapport d'import
+        <span class="import-step-num">5</span>
+        Résultat
       </h2>
-      <div id="import-report-container"></div>
+      <div id="import-report-content"></div>
       <div class="import-actions">
-        <button class="btn btn-ghost" id="btn-import-reset">
-          Importer un autre fichier
-        </button>
+        <button class="btn btn-ghost" id="btn-import-reset">Nouvel import</button>
         <a class="btn btn-primary" href="#/prospects">Voir les prospects</a>
       </div>
     </section>
 
-  </main>
+  </div>
 </div>

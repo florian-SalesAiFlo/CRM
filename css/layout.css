@@ -92,7 +92,7 @@ body {
 .sidebar-search {
   padding: 0 var(--space-3) var(--space-3);
   flex-shrink: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 .sidebar-search input {
   width: 100%;
@@ -269,4 +269,31 @@ body.sidebar-collapsed .main-content { /* no-op, flex handles it */ }
 }
 .section-title {
   font-size: var(--text-base); font-weight: 600; color: var(--color-text); margin: 0;
+}
+
+/* ── Sidebar hover-expand (CRM-44) ────────────────────────── */
+/* S'applique uniquement quand collapsed + souris dessus.      */
+/* NE MODIFIE PAS les classes collapsed / sidebar-collapsed.   */
+.sidebar.collapsed.sidebar-hover-expand {
+  width: var(--sidebar-width);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, .10);
+}
+.sidebar.collapsed.sidebar-hover-expand .sidebar-brand span,
+.sidebar.collapsed.sidebar-hover-expand .sidebar-nav li a span {
+  opacity: 1;
+  width: auto;
+}
+.sidebar.collapsed.sidebar-hover-expand .sidebar-nav-section {
+  opacity: 1;
+}
+.sidebar.collapsed.sidebar-hover-expand .sidebar-search {
+  opacity: 1;
+  pointer-events: auto;
+}
+.sidebar.collapsed.sidebar-hover-expand .sidebar-toggle {
+  align-self: flex-end;
+  margin: 0 var(--space-3) var(--space-2);
+}
+.sidebar.collapsed.sidebar-hover-expand .sidebar-toggle svg {
+  transform: rotate(0deg);
 }

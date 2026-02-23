@@ -69,6 +69,16 @@
     </div>
   </div>
 
+  <!-- ── Pipeline par statut ── -->
+  <section class="dash-section" aria-labelledby="pipeline-title" id="pipeline-section-wrap">
+    <div class="dash-section-header">
+      <h2 class="dash-section-title" id="pipeline-title">Pipeline</h2>
+    </div>
+    <div id="pipeline-section" class="pipeline-wrap">
+      <!-- Rempli par dashboard.js → renderPipeline() -->
+    </div>
+  </section>
+
   <!-- ── Tableau activités récentes ── -->
   <section class="dash-section" aria-labelledby="activites-title">
     <div class="dash-section-header">
@@ -89,17 +99,6 @@
           <!-- Rempli par dashboard.js -->
         </tbody>
       </table>
-    </div>
-  </section>
-
-  <!-- ── Rappels du jour ── -->
-  <section class="dash-section" aria-labelledby="rappels-title">
-    <div class="dash-section-header">
-      <h2 class="dash-section-title" id="rappels-title">Rappels du jour</h2>
-      <span class="badge badge-secondary" id="dash-rappels-count" style="margin-left:var(--space-2)">—</span>
-    </div>
-    <div id="dash-rappels-body">
-      <!-- Rempli par dashboard.js -->
     </div>
   </section>
 
@@ -191,6 +190,58 @@
   }
   .dash-section-title {
     font-size: var(--text-base); font-weight: 600; color: var(--color-text);
+  }
+
+  /* ── Pipeline ── */
+  .pipeline-wrap { padding: var(--space-5); }
+  .pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+  }
+  @media (max-width: 700px) { .pipeline-grid { grid-template-columns: 1fr; } }
+
+  .pipeline-col {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .pipeline-col-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pipeline-count {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -.03em;
+  }
+  .pipeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .pipeline-prospect-link {
+    font-size: var(--text-sm);
+    color: var(--color-primary);
+    text-decoration: none;
+    padding: var(--space-1) 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  .pipeline-prospect-link:hover { text-decoration: underline; }
+  .pipeline-voir-tout {
+    margin-top: auto;
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+    align-self: flex-start;
   }
 
   /* ── Tableau ── */

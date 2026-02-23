@@ -115,3 +115,36 @@
   color: var(--color-text);
 }
 .badge-select-option:hover { background: var(--color-surface-alt); }
+
+/* ── Édition inline champs texte ─────────────────────────── */
+.editable-field {
+  cursor: pointer;
+  padding: 2px var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  display: inline-block;
+  min-width: 2rem;
+}
+.editable-field:hover { background: var(--color-surface-alt); }
+.editable-field::after {
+  content: ' ✎';
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+.editable-field:hover::after { opacity: 1; }
+.editable-empty { color: var(--color-text-tertiary); font-style: italic; }
+.editable-input {
+  font: inherit;
+  font-size: var(--text-sm);
+  padding: 2px var(--space-1);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  outline: none;
+  width: 100%;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-focus);
+  resize: vertical;
+}

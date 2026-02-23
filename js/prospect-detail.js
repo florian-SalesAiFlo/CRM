@@ -9,6 +9,7 @@ import { openPanel, modal, closeModal } from './ui-panels.js';
 import { getStatut, getRetour, getCanal, METIERS, ROLES_EMPLOYE, STATUTS_RAPPEL,
          CANAUX_INTERACTION, STATUTS_PROSPECT, RETOURS_PROSPECT, VOLUMES_CANDIDATURES } from './config.js';
 import { renderRappels, bindRappelActions } from './rappel-render.js';
+import { editableField, bindEditableFields } from './prospect-inline-edit.js';
 let _prospect = null;
 
 // ── SVG icônes actions (16×16, réutilisées dans les 3 sections) ──
@@ -156,10 +157,20 @@ async function confirmDelete(prospect) {
 }
 
 // ── Info grid ─────────────────────────────────────────────
+
+/** @param {string} name @param {string} val @param {string} id @returns {string} HTML */
+function editableField(name, val, id) {
+  const display = val ? esc(val) : '<span class="editable-empty">—</span>';
+  return `<span class="editable-field" data-name="${name}" data-id="${id}">${display}</span>`;
+}
+
+/**
+ * Rend la grille d'information du prospect avec champs éditables inline.
+ * @param {object} p - données prospect
+ */
 function renderInfoGrid(p) {
   const grid = document.getElementById('info-grid');
   if (!grid) return;
-  const metierLabel = METIERS.find(m => m.value === p.metier)?.label ?? p.metier ?? null;
 
   grid.innerHTML = `
     <div class="info-field">
@@ -180,35 +191,38 @@ function renderInfoGrid(p) {
     </div>
     <div class="info-field">
       <div class="info-label">Téléphone</div>
-      <div class="info-value">${esc(p.telephone) || '—'}</div>
+      <div class="info-value">${editableField('telephone', p.telephone, p.id)}</div>
     </div>
     <div class="info-field">
       <div class="info-label">Email</div>
-      <div class="info-value">${p.email ? `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>` : '—'}</div>
+      <div class="info-value">${editableField('email', p.email, p.id)}</div>
     </div>
     <div class="info-field">
       <div class="info-label">Site web</div>
-      <div class="info-value">${p.site_web ? `<a href="${esc(p.site_web)}" target="_blank" rel="noopener">${esc(p.site_web)}</a>` : '—'}</div>
+      <div class="info-value">${editableField('site_web', p.site_web, p.id)}</div>
     </div>
     <div class="info-field">
       <div class="info-label">Adresse</div>
-      <div class="info-value">${esc(p.adresse) || '—'}</div>
+      <div class="info-value">${editableField('adresse', p.adresse, p.id)}</div>
     </div>
     <div class="info-field">
       <div class="info-label">Code postal</div>
-      <div class="info-value">${esc(p.code_postal) || '—'}</div>
+      <div class="info-value">${editableField('code_postal', p.code_postal, p.id)}</div>
     </div>
     <div class="info-field">
       <div class="info-label">Ville</div>
-      <div class="info-value">${esc(p.ville) || '—'}</div>
+      <div class="info-value">${editableField('ville', p.ville, p.id)}</div>
     </div>
-    <div class="info-field">
+    <div class="info-field info-field--full">
       <div class="info-label">Commentaire</div>
-      <div class="info-value${p.commentaire ? '' : ' empty'}">${esc(p.commentaire) || '—'}</div>
+      <div class="info-value">${editableField('commentaire', p.commentaire, p.id)}</div>
     </div>`;
 
   bindBadgeSelects(grid, p.id);
+  bindEditableFields(grid);
 }
+
+
 
 // ── Contacts ──────────────────────────────────────────────
 function renderContacts(contacts) {

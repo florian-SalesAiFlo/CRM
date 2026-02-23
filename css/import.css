@@ -74,3 +74,38 @@
 .import-errors-title { font-size: var(--text-sm); font-weight: 600; color: var(--color-text-secondary); margin: 0 0 var(--space-2); }
 .import-errors-list { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-1); }
 .import-error   { font-size: var(--text-sm); color: var(--color-danger, #ef4444); }
+
+/* ── Stepper indicator ──────────────────────────────────── */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: var(--space-8);
+  padding: var(--space-6) var(--space-6) 0;
+}
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+.step-badge {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: var(--text-sm); flex-shrink: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.step-active  { background: var(--color-primary); color: #fff; }
+.step-done    { background: var(--color-success);  color: #fff; }
+.step-pending { background: var(--color-surface-alt); color: var(--color-text-tertiary); }
+.step-label {
+  font-size: var(--text-xs); color: var(--color-text-tertiary);
+  white-space: nowrap; margin-top: var(--space-1);
+}
+.step-connector {
+  height: 2px; width: 40px; background: var(--color-border);
+  margin-bottom: var(--space-4); flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+.step-connector.done { background: var(--color-success); }
