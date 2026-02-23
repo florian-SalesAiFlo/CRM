@@ -46,6 +46,14 @@ export async function initRouter() {
   // Pattern documenté dans SKILL.md — communication inter-modules sans bundler.
   window.__uiPanels = { openPanel, closePanels, closeModal };
 
+  // Auto-redirect : session active + pas de route cible → prospects
+  const authed = await isAuthenticated();
+  const hash = window.location.hash.slice(1) || '/login';
+  if (authed && (hash === '/login' || hash === '/' || hash === '')) {
+    window.location.hash = '/prospects';
+    return;
+  }
+
   initSidebar();
   listenHashChange();
   await navigate(getCurrentRoute());
