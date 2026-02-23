@@ -158,11 +158,6 @@ async function confirmDelete(prospect) {
 
 // ── Info grid ─────────────────────────────────────────────
 
-/** @param {string} name @param {string} val @param {string} id @returns {string} HTML */
-function editableField(name, val, id) {
-  const display = val ? esc(val) : '<span class="editable-empty">—</span>';
-  return `<span class="editable-field" data-name="${name}" data-id="${id}">${display}</span>`;
-}
 
 /**
  * Rend la grille d'information du prospect avec champs éditables inline.
