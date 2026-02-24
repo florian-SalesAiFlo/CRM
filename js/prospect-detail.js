@@ -175,7 +175,7 @@ function renderInfoGrid(p) {
     </div>
     <div class="info-field">
       <div class="info-label">SIRET</div>
-      <div class="info-value">${esc(formatSiret(p.siret)) || '—'}</div>
+      <div class="info-value">${editableField('siret', p.siret, p.id)}</div>
     </div>
     <div class="info-field">
       <div class="info-label">Métier</div>
