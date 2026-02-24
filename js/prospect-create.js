@@ -9,6 +9,7 @@ import { createProspect }       from './supabase-client.js';
 import { toast }                from './ui-components.js';
 import { openPanel, closePanels } from './ui-panels.js';
 import { METIERS, STATUTS_PROSPECT, RETOURS_PROSPECT } from './config.js';
+import { lookupSiret }          from './siret-lookup.js';
 
 // ── IDs DOM ───────────────────────────────────────────────
 
@@ -44,7 +45,33 @@ function openCreatePanel(onCreated) {
   document.getElementById(FORM_ID)?.addEventListener('submit', e =>
     handleSubmit(e, onCreated)
   );
+  bindSiretLookupOnCreate();
   openPanel(PANEL_ID);
+}
+
+// ── SIRET auto-enrichissement à la création ───────────────
+
+function bindSiretLookupOnCreate() {
+  const siretInput = document.getElementById('fc-siret');
+  if (!siretInput) return;
+
+  siretInput.addEventListener('blur', async () => {
+    const val = siretInput.value.replace(/\s/g, '');
+    if (val.length !== 14) return;
+    const result = await lookupSiret(val);
+    if (!result?.nom) return;
+
+    const addr = [result.adresse, result.code_postal, result.ville].filter(Boolean).join(', ');
+    const msg = `Entreprise trouvée : ${result.nom}${addr ? ' — ' + addr : ''}. Remplir ?`;
+    if (!window.confirm(msg)) return;
+
+    const fill = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+    fill('fc-nom', result.nom);
+    fill('fc-adresse', result.adresse);
+    fill('fc-cp', result.code_postal);
+    fill('fc-ville', result.ville);
+    toast('Champs pré-remplis depuis l\'annuaire.', 'success');
+  });
 }
 
 // ── Soumission ────────────────────────────────────────────

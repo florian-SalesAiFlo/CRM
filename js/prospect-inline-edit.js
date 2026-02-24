@@ -128,7 +128,10 @@ async function commitInlineEdit(input, name, id) {
 async function triggerSiretLookup(siret, prospectId) {
   const result = await lookupSiret(siret);
   if (!result) return;
-  const refresh = () => rebindGrid();
+  const refresh = async () => {
+    const { initProspectDetail } = await import('./prospect-detail.js');
+    initProspectDetail();
+  };
   proposeSiretEnrichment(result, prospectId, refresh);
 }
 
