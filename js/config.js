@@ -115,8 +115,8 @@ export const ROLES_EMPLOYE = [
 // ou un fichier .env.local non versionné.
 
 export const SUPABASE_CONFIG = {
-  url:    typeof SUPABASE_URL  !== 'undefined' ? SUPABASE_URL  : '',
-  anonKey: typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '',
+  url:     'https://mlybcxtnnoupvwromwhf.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seWJjeHRubm91cHZ3cm9td2hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1OTkwMTcsImV4cCI6MjA4NzE3NTAxN30.r69K7wLWlVIlx2Hcmn194qUkT0Net7O6a_fj5mKWK8I',
 };
 
 // ── Helpers de lookup ─────────────────────────────────────
