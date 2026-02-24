@@ -111,7 +111,8 @@ export async function fetchProspectById(id) {
       profiles!commercial_id(id, nom, email),
       contacts(*),
       interactions(id, canal, created_at),
-      rappels(id, date_rappel, statut)
+      rappels(id, date_rappel, statut),
+      type_abo, statut_abo, date_debut_abo, date_fin_abo, tarif_mensuel, reabo_auto
     `)
     .eq('id', id)
     .single();

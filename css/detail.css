@@ -148,3 +148,84 @@
   box-shadow: var(--shadow-focus);
   resize: vertical;
 }
+
+/* ── Dropdown reporter rappel ────────────────────────────── */
+.reporter-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.reporter-dropdown {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  flex-direction: column;
+  min-width: 160px;
+  z-index: 300;
+  padding: var(--space-1) 0;
+}
+.reporter-wrap.open .reporter-dropdown { display: flex; }
+.reporter-option {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+.reporter-option:hover { background: var(--color-surface-alt); }
+
+/* ── Bandeau enrichissement SIRET ────────────────────────── */
+.siret-banner {
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+.siret-banner-body {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.siret-banner-icon { font-size: 1.2rem; flex-shrink: 0; }
+.siret-banner-text {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  flex: 1;
+  min-width: 200px;
+}
+.siret-banner-actions { display: flex; gap: var(--space-2); }
+
+/* ── Section abonnement ──────────────────────────────────── */
+.abo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+.abo-row:last-child { border-bottom: none; }
+.abo-label { font-size: var(--text-xs); color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: var(--space-1); }
+.abo-value { font-size: var(--text-sm); color: var(--color-text); }
+/* Toggle réabo */
+.abo-toggle { display: inline-flex; align-items: center; cursor: pointer; }
+.abo-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.abo-toggle-track {
+  width: 36px; height: 20px; background: var(--color-border);
+  border-radius: 99px; position: relative; transition: background var(--transition-fast);
+}
+.abo-toggle-track::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 14px; height: 14px; background: #fff; border-radius: 50%;
+  transition: transform var(--transition-fast);
+}
+.abo-toggle input:checked + .abo-toggle-track { background: var(--color-success); }
+.abo-toggle input:checked + .abo-toggle-track::after { transform: translateX(16px); }

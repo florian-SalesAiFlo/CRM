@@ -6,6 +6,7 @@
 
 import { updateProspect } from './supabase-client.js';
 import { toast }          from './ui-components.js';
+import { lookupSiret, proposeSiretEnrichment } from './siret-lookup.js';
 
 // ── HTML helper ───────────────────────────────────────────
 
@@ -113,6 +114,22 @@ async function commitInlineEdit(input, name, id) {
   if (error) { toast(`Erreur : ${error.message}`, 'error'); return; }
   toast('Mis à jour.', 'success');
   rebindGrid();
+
+  if (name === 'siret' && value) {
+    triggerSiretLookup(value, id);
+  }
+}
+
+/**
+ * Lance la recherche SIRET en background et propose l'enrichissement si trouvé.
+ * @param {string} siret
+ * @param {string} prospectId
+ */
+async function triggerSiretLookup(siret, prospectId) {
+  const result = await lookupSiret(siret);
+  if (!result) return;
+  const refresh = () => rebindGrid();
+  proposeSiretEnrichment(result, prospectId, refresh);
 }
 
 /**

@@ -93,10 +93,10 @@ export const STATUTS_RAPPEL = [
 // ── Presets de délai pour rappels ─────────────────────────
 
 export const PRESETS_RAPPEL = [
-  { label: 'J+1',            days: 1,    isSystem: false },
-  { label: 'J+7',            days: 7,    isSystem: false },
-  { label: 'J+30',           days: 30,   isSystem: false },
-  { label: 'M+11 réabo',     months: 11, isSystem: true  },
+  { label: 'J+1',          days: 1,    isSystem: false },
+  { label: 'J+7',          days: 7,    isSystem: false },
+  { label: 'J+30',         days: 30,   isSystem: false },
+  { label: 'M+11 réabo',   months: 11, isSystem: true  },
   { label: 'Revue annuelle', months: 12, isSystem: true },
 ];
 
@@ -111,14 +111,12 @@ export const ROLES_EMPLOYE = [
 ];
 
 // ── Configuration Supabase ────────────────────────────────
-// La clé `anonKey` est une clé PUBLIQUE client — pas un secret.
-// Elle est lisible par n'importe qui via les DevTools du navigateur.
-// La sécurité repose entièrement sur le Row Level Security (RLS) Supabase,
-// pas sur l'obscurcissement de cette clé. OK de la committer.
+// Les vraies valeurs sont injectées via des variables d'env
+// ou un fichier .env.local non versionné.
 
 export const SUPABASE_CONFIG = {
-  url:     'https://mlybcxtnnoupvwromwhf.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seWJjeHRubm91cHZ3cm9td2hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1OTkwMTcsImV4cCI6MjA4NzE3NTAxN30.r69K7wLWlVIlx2Hcmn194qUkT0Net7O6a_fj5mKWK8I',
+  url:    typeof SUPABASE_URL  !== 'undefined' ? SUPABASE_URL  : '',
+  anonKey: typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '',
 };
 
 // ── Helpers de lookup ─────────────────────────────────────
@@ -152,3 +150,29 @@ export function getCanal(value) {
   return CANAUX_INTERACTION.find(c => c.value === value)
     ?? CANAUX_INTERACTION[4];
 }
+
+// ── Options de report rapide ──────────────────────────────
+
+export const OPTIONS_REPORT = [
+  { value: '1',     label: 'Demain' },
+  { value: '3',     label: 'Dans 3 jours' },
+  { value: 'lundi', label: 'Semaine prochaine' },
+];
+
+// ── Types abonnement ──────────────────────────────────────
+
+export const TYPES_ABO = [
+  { value: 'aucun',   label: 'Aucun',    badgeType: 'secondary' },
+  { value: 'essai',   label: 'Essai',    badgeType: 'info' },
+  { value: 'mensuel', label: 'Mensuel',  badgeType: 'primary' },
+  { value: 'annuel',  label: 'Annuel',   badgeType: 'success' },
+];
+
+// ── Statuts abonnement ────────────────────────────────────
+
+export const STATUTS_ABO = [
+  { value: 'actif',       label: 'Actif',       badgeType: 'success' },
+  { value: 'en_attente',  label: 'En attente',  badgeType: 'warning' },
+  { value: 'expire',      label: 'Expiré',      badgeType: 'danger' },
+  { value: 'resilie',     label: 'Résilié',     badgeType: 'danger' },
+];

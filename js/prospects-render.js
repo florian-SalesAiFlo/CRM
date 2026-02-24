@@ -161,3 +161,43 @@ function esc(str) {
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
   );
 }
+
+// ── Pagination ────────────────────────────────────────────
+
+/**
+ * Retourne la tranche de données pour la page courante.
+ * @param {Array}  data
+ * @param {number} page
+ * @param {number} pageSize
+ * @returns {Array}
+ */
+export function paginate(data, page, pageSize) {
+  if (data.length <= pageSize) return data;
+  return data.slice(page * pageSize, (page + 1) * pageSize);
+}
+
+/**
+ * Injecte les boutons pagination dans #prospects-pagination.
+ * Pas de boutons si total <= pageSize.
+ * @param {number}   total
+ * @param {number}   page
+ * @param {number}   pageSize
+ * @param {Function} onPageChange - callback(newPage)
+ */
+export function renderPagination(total, page, pageSize, onPageChange) {
+  const container = document.getElementById('prospects-pagination');
+  if (!container) return;
+  if (total <= pageSize) { container.innerHTML = ''; return; }
+
+  const totalPages = Math.ceil(total / pageSize);
+  const hasPrev    = page > 0;
+  const hasNext    = page < totalPages - 1;
+
+  container.innerHTML = `
+    <button class="btn btn-ghost btn-sm" id="page-prev" ${hasPrev ? '' : 'disabled'}>← Précédente</button>
+    <span class="page-info">Page ${page + 1} / ${totalPages}</span>
+    <button class="btn btn-ghost btn-sm" id="page-next" ${hasNext ? '' : 'disabled'}>Suivante →</button>`;
+
+  container.querySelector('#page-prev')?.addEventListener('click', () => onPageChange(page - 1));
+  container.querySelector('#page-next')?.addEventListener('click', () => onPageChange(page + 1));
+}

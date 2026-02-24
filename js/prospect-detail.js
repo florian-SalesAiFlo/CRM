@@ -6,10 +6,11 @@ import { fetchProspectById, fetchInteractions, fetchRappels, fetchContacts,
          deleteProspect, deleteContact, deleteInteraction, updateProspect } from './supabase-client.js';
 import { toast, badgeSelect } from './ui-components.js';
 import { openPanel, modal, closeModal } from './ui-panels.js';
-import { getStatut, getRetour, getCanal, METIERS, ROLES_EMPLOYE, STATUTS_RAPPEL,
-         CANAUX_INTERACTION, STATUTS_PROSPECT, RETOURS_PROSPECT, VOLUMES_CANDIDATURES } from './config.js';
+import { METIERS, STATUTS_PROSPECT, RETOURS_PROSPECT, VOLUMES_CANDIDATURES } from './config.js';
+import { renderContacts, renderTimeline } from './prospect-sections.js';
 import { renderRappels, bindRappelActions } from './rappel-render.js';
 import { editableField, bindEditableFields } from './prospect-inline-edit.js';
+import { renderAbonnement } from './prospect-abonnement.js';
 let _prospect = null;
 
 // ── SVG icônes actions (16×16, réutilisées dans les 3 sections) ──
@@ -43,6 +44,7 @@ async function loadProspect(id) {
   renderContacts(prospect.contacts ?? []);
   renderTimeline(interactions ?? []);
   renderRappels(rappels ?? []);
+  renderAbonnement(prospect);
   bindPanelButtons(id);
 }
 
@@ -158,7 +160,6 @@ async function confirmDelete(prospect) {
 
 // ── Info grid ─────────────────────────────────────────────
 
-
 /**
  * Rend la grille d'information du prospect avec champs éditables inline.
  * @param {object} p - données prospect
@@ -218,58 +219,6 @@ function renderInfoGrid(p) {
 }
 
 
-
-// ── Contacts ──────────────────────────────────────────────
-function renderContacts(contacts) {
-  const tbody = document.getElementById('contacts-tbody');
-  if (!tbody) return;
-  if (!contacts.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="padding:var(--space-6);text-align:center;color:var(--color-text-tertiary)">Aucun contact enregistré</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = contacts.map(c => {
-    const role    = ROLES_EMPLOYE.find(r => r.value === c.role_employe)?.label ?? '—';
-    const encoded = esc(JSON.stringify(c));
-    return `<tr>
-      <td>${esc(c.nom)}</td><td>${esc(role)}</td>
-      <td>${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '—'}</td>
-      <td>${esc(c.telephone ?? '—')}</td>
-      <td class="col-actions">
-        <span class="row-actions">
-          <button class="row-action-btn row-action-edit contact-edit"
-                  data-contact='${encoded}' title="Modifier" aria-label="Modifier ${esc(c.nom)}">${SVG.edit}</button>
-          <button class="row-action-btn row-action-delete contact-delete"
-                  data-id="${esc(c.id)}" data-nom="${esc(c.nom)}" title="Supprimer" aria-label="Supprimer ${esc(c.nom)}">${SVG.delete}</button>
-        </span>
-      </td></tr>`;
-  }).join('');
-}
-
-// ── Timeline ──────────────────────────────────────────────
-function renderTimeline(interactions) {
-  const tl = document.getElementById('timeline');
-  if (!tl) return;
-  if (!interactions.length) {
-    tl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💬</div><p>Aucune interaction enregistrée</p></div>`;
-    return;
-  }
-  tl.innerHTML = interactions.map(i => {
-    const canal   = getCanal(i.canal);
-    const date    = new Date(i.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
-    const auteur  = i.profiles?.nom ?? 'Inconnu';
-    const encoded = esc(JSON.stringify(i));
-    const actions = `<span class="row-actions">` +
-      `<button class="row-action-btn row-action-edit interaction-edit" data-interaction='${encoded}' title="Modifier">${SVG.edit}</button>` +
-      `<button class="row-action-btn row-action-delete interaction-delete" data-id="${esc(i.id)}" title="Supprimer">${SVG.delete}</button>` +
-      `</span>`;
-    return `<div class="tl-item canal-${esc(i.canal ?? '')}">` +
-      `<div class="tl-body"><div class="tl-header">` +
-      `<span class="tl-title">${canal.label}</span>` +
-      `<span class="tl-date">${date}</span>${actions}</div>` +
-      `<div class="tl-comment">${esc(i.contenu ?? '')}</div>` +
-      `<div class="tl-meta">${esc(auteur)}</div></div></div>`;
-  }).join('');
-}
 
 // ── Panels boutons ────────────────────────────────────────
 function bindPanelButtons(prospectId) {

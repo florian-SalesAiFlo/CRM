@@ -8,9 +8,11 @@
 import { fetchProspectsWithStats, createProspect } from './supabase-client.js';
 import { toast }                                    from './ui-components.js';
 import { openPanel, closePanels }                   from './ui-panels.js';
-import { renderTable, renderCreateForm }            from './prospects-render.js';
+import { renderTable, renderCreateForm, renderPagination, paginate } from './prospects-render.js';
 
 // ── État du module ────────────────────────────────────────
+
+const PAGE_SIZE = 50;
 
 const state = {
   prospects: [],
@@ -19,6 +21,7 @@ const state = {
   sortAsc:   false,
   filters:   { statut: '', metier: '', retour: '', commercial_id: '' },
   search:    '',
+  page:      0,
 };
 
 const DOM = {
@@ -34,11 +37,23 @@ const DOM = {
 // ── Init ──────────────────────────────────────────────────
 
 export async function initProspectList() {
+  readStoredFilter();
   bindFilterEvents();
   bindSearchEvent();
   bindNewProspectBtn();
   bindSortHeaders();
   await loadProspects();
+}
+
+/** Lit le filtre statut stocké par le pipeline dashboard. */
+function readStoredFilter() {
+  const stored = localStorage.getItem('prospects_filter_statut');
+  if (!stored) return;
+  state.filters.statut = stored;
+  localStorage.removeItem('prospects_filter_statut');
+  // Synchronise le select UI s'il existe déjà
+  const sel = document.querySelector('select[data-filter="statut"]');
+  if (sel) sel.value = stored;
 }
 
 // ── Chargement Supabase ───────────────────────────────────
@@ -83,9 +98,16 @@ function applyLocalFiltersAndRender() {
   });
 
   sortFiltered();
-  renderTable(state.filtered, DOM.tbody);
+  renderTable(paginate(state.filtered, state.page, PAGE_SIZE), DOM.tbody);
   updateCount();
+  renderPagination(state.filtered.length, state.page, PAGE_SIZE, onPageChange);
   bindRowNavigation();
+}
+
+/** Callback changement de page. */
+function onPageChange(newPage) {
+  state.page = newPage;
+  applyLocalFiltersAndRender();
 }
 
 function sortFiltered() {
@@ -117,9 +139,11 @@ function sortValue(p, key) {
 function toggleSort(key) {
   state.sortAsc = state.sortKey === key ? !state.sortAsc : false;
   state.sortKey = key;
+  state.page    = 0;
   updateSortHeaders();
   sortFiltered();
-  renderTable(state.filtered, DOM.tbody);
+  renderTable(paginate(state.filtered, state.page, PAGE_SIZE), DOM.tbody);
+  renderPagination(state.filtered.length, state.page, PAGE_SIZE, onPageChange);
   bindRowNavigation();
 }
 
@@ -141,6 +165,7 @@ function bindFilterEvents() {
     const sel = e.target.closest('select[data-filter]');
     if (!sel) return;
     state.filters[sel.dataset.filter] = sel.value;
+    state.page = 0;
     await loadProspects();
   });
 }
@@ -153,6 +178,7 @@ function bindSearchEvent() {
     clearTimeout(timer);
     timer = setTimeout(() => {
       state.search = input.value;
+      state.page = 0;
       applyLocalFiltersAndRender();
     }, 200);
   });

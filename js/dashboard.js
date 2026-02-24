@@ -7,6 +7,7 @@
 import { fetchProspectsWithStats, fetchRappelsDuJour, fetchRecentInteractions } from './supabase-client.js';
 import { getStatut, STATUTS_PROSPECT, getCanal } from './config.js';
 import { emptyState } from './ui-components.js';
+import { renderCharts } from './dashboard-charts.js';
 
 // ── Init ──────────────────────────────────────────────────
 
@@ -30,6 +31,8 @@ export async function initDashboard() {
   renderKPIs(safeProspects, safeRappels);
   renderPipeline(safeProspects);
   renderActivites(safeInteractions);
+  renderCharts(safeProspects, safeInteractions);
+  renderTeamActivity(safeProspects, safeInteractions, safeRappels);
 }
 
 // ── Date ──────────────────────────────────────────────────
@@ -147,6 +150,86 @@ function renderActivites(interactions) {
       <td>${esc(auteur)}</td>
     </tr>`;
   }).join('');
+}
+
+// ── Activité équipe ───────────────────────────────────────
+
+/**
+ * Rend le tableau d'activité par commercial.
+ * Section masquée si aucun commercial assigné.
+ * @param {Array} prospects
+ * @param {Array} interactions
+ * @param {Array} rappels
+ */
+function renderTeamActivity(prospects, interactions, rappels) {
+  const section = document.getElementById('team-section');
+  if (!section) return;
+
+  const team = buildTeamStats(prospects, interactions, rappels);
+  if (!team.length) { section.style.display = 'none'; return; }
+
+  const rows = team.map(buildTeamRow).join('');
+  section.innerHTML = `
+    <h3 class="section-title">Activité équipe</h3>
+    <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr>
+        <th>Commercial</th>
+        <th class="col-center">Prospects</th>
+        <th class="col-center">Interactions 30j</th>
+        <th class="col-center">Rappels faits 30j</th>
+        <th class="col-center">Rappels en retard</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    </div>`;
+}
+
+/**
+ * Calcule les stats par commercial et trie par interactions desc.
+ * @param {Array} prospects
+ * @param {Array} interactions
+ * @param {Array} rappels
+ * @returns {Array} stats par commercial
+ */
+function buildTeamStats(prospects, interactions, rappels) {
+  const map    = new Map();
+  const cutoff = new Date(Date.now() - 30 * 86400000);
+  const today  = new Date().toISOString().slice(0, 10);
+
+  for (const p of prospects) {
+    const nom = p.profiles?.nom;
+    if (!nom) continue;
+    if (!map.has(nom)) map.set(nom, { nom, prospects: 0, interactions30: 0, rappelsFaits: 0, rappelsRetard: 0 });
+    const s = map.get(nom);
+    s.prospects++;
+
+    for (const i of p.interactions ?? []) {
+      if (new Date(i.created_at) >= cutoff) s.interactions30++;
+    }
+    for (const r of p.rappels ?? []) {
+      if (r.statut === 'fait' && new Date(r.date_rappel) >= cutoff) s.rappelsFaits++;
+      if (r.statut === 'planifie' && r.date_rappel < today) s.rappelsRetard++;
+    }
+  }
+
+  return [...map.values()].sort((a, b) => b.interactions30 - a.interactions30);
+}
+
+/**
+ * Construit une ligne HTML pour un commercial.
+ * @param {object} s - stats du commercial
+ * @returns {string} HTML
+ */
+function buildTeamRow(s) {
+  const retardClass = s.rappelsRetard > 0 ? 'badge badge-danger' : 'badge badge-secondary';
+  return `<tr>
+    <td>${esc(s.nom)}</td>
+    <td class="col-center">${s.prospects}</td>
+    <td class="col-center">${s.interactions30}</td>
+    <td class="col-center">${s.rappelsFaits}</td>
+    <td class="col-center"><span class="${retardClass}">${s.rappelsRetard}</span></td>
+  </tr>`;
 }
 
 // ── Utils ─────────────────────────────────────────────────
