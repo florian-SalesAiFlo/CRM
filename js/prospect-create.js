@@ -55,23 +55,43 @@ function bindSiretLookupOnCreate() {
   const siretInput = document.getElementById('fc-siret');
   if (!siretInput) return;
 
-  siretInput.addEventListener('blur', async () => {
+  let debounceTimer = null;
+  siretInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
     const val = siretInput.value.replace(/\s/g, '');
     if (val.length !== 14) return;
-    const result = await lookupSiret(val);
-    if (!result?.nom) return;
-
-    const addr = [result.adresse, result.code_postal, result.ville].filter(Boolean).join(', ');
-    const msg = `Entreprise trouvée : ${result.nom}${addr ? ' — ' + addr : ''}. Remplir ?`;
-    if (!window.confirm(msg)) return;
-
-    const fill = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
-    fill('fc-nom', result.nom);
-    fill('fc-adresse', result.adresse);
-    fill('fc-cp', result.code_postal);
-    fill('fc-ville', result.ville);
-    toast('Champs pré-remplis depuis l\'annuaire.', 'success');
+    debounceTimer = setTimeout(() => autoFillFromSiret(val), 400);
   });
+}
+
+async function autoFillFromSiret(siret) {
+  const result = await lookupSiret(siret);
+  if (!result?.nom) return;
+
+  const fill = (id, v) => { const el = document.getElementById(id); if (el && v && !el.value.trim()) el.value = v; };
+  const fillForce = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+
+  // Nom : remplir seulement si vide ou placeholder
+  fill('fc-nom', result.nom);
+  fill('fc-adresse', result.adresse);
+  fill('fc-cp', result.code_postal);
+  fill('fc-ville', result.ville);
+
+  // Bandeau info
+  const banner = document.getElementById('siret-create-banner');
+  if (banner) banner.remove();
+  const addr = [result.adresse, result.code_postal, result.ville].filter(Boolean).join(', ');
+  const html = `<div id="siret-create-banner" style="background:var(--color-success-soft);color:var(--color-success);padding:var(--space-3) var(--space-4);border-radius:var(--radius-sm);font-size:var(--text-sm);margin-bottom:var(--space-4)">
+    🔍 <strong>${esc(result.nom)}</strong>${addr ? ' — ' + esc(addr) : ''} — champs pré-remplis
+  </div>`;
+  document.getElementById('fc-siret')?.closest('.form-row')?.insertAdjacentHTML('afterend', html);
+  toast('Entreprise trouvée, champs pré-remplis.', 'success');
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // ── Soumission ────────────────────────────────────────────
@@ -94,7 +114,7 @@ async function handleSubmit(e, onCreated) {
 
   const payload = {
     nom,
-    siret:      form.querySelector('#fc-siret')?.value.trim()    || null,
+    siret:      (form.querySelector('#fc-siret')?.value || '').replace(/\s/g, '') || null,
     metier:     form.querySelector('#fc-metier')?.value          || null,
     statut:     form.querySelector('#fc-statut')?.value          || 'a_definir',
     retour:     form.querySelector('#fc-retour')?.value          || null,
@@ -148,7 +168,7 @@ function renderForm() {
         <div class="form-field">
           <label class="form-label" for="fc-siret">SIRET</label>
           <input class="form-input" id="fc-siret" name="siret" type="text"
-                 placeholder="123 456 789 00012" maxlength="14">
+                 placeholder="123 456 789 00012" maxlength="20">
         </div>
         <div class="form-field">
           <label class="form-label" for="fc-metier">Métier</label>
