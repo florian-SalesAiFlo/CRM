@@ -106,6 +106,7 @@ function handleInlineKey(e, input, name, id, original) {
  * @param {string}      id
  */
 async function commitInlineEdit(input, name, id) {
+  if (!input.isConnected) return;
   const value = input.value.trim() || null;
   const span  = buildEditableSpan(name, id, value);
   input.replaceWith(span);
