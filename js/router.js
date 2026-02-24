@@ -7,7 +7,8 @@
 import { initSupabase }                      from './supabase-client.js';
 import { initUIComponents }                  from './ui-components.js';
 import { openPanel, closePanels, closeModal } from './ui-panels.js';
-import { initAuth, isAuthenticated }          from './auth.js';
+// AUTH DÉSACTIVÉE — import retiré
+// import { initAuth, isAuthenticated }          from './auth.js';
 
 // ── Constantes de routing ─────────────────────────────────
 
@@ -263,6 +264,7 @@ function initPageScripts(pattern) {
     case '/prospect/:id': return initProspectDetailPage();
     case '/dashboard':    return initDashboardPage();
     case '/import':       return initImportPage();
+    case '/rappels':      return initRappelsPage();
     default:              break;
   }
 }
@@ -298,4 +300,9 @@ async function initDashboardPage() {
 async function initImportPage() {
   const { initImport } = await import('./import.js');
   initImport();
+}
+
+async function initRappelsPage() {
+  const { initRappelsPage: init } = await import('./rappels-page.js');
+  init();
 }
