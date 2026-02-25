@@ -354,3 +354,37 @@ export async function deleteRappel(id) {
   const db = getClient();
   return db.from('rappels').delete().eq('id', id);
 }
+
+// ── Recherche globale ─────────────────────────────────────
+
+/**
+ * Recherche des contacts par nom, prénom, email ou téléphone.
+ * Retourne les contacts avec le nom du prospect parent.
+ * @param {string} query
+ * @returns {Promise<Array>}
+ */
+export async function searchContacts(query) {
+  const db = getClient();
+  const { data } = await db
+    .from('contacts')
+    .select('id, nom, prenom, email, telephone, prospect_id, prospects(id, nom)')
+    .or(`nom.ilike.%${query}%,prenom.ilike.%${query}%,email.ilike.%${query}%,telephone.ilike.%${query}%`)
+    .limit(5);
+  return data ?? [];
+}
+
+/**
+ * Recherche des interactions par contenu ou auteur.
+ * Retourne les interactions avec le nom du prospect parent.
+ * @param {string} query
+ * @returns {Promise<Array>}
+ */
+export async function searchInteractions(query) {
+  const db = getClient();
+  const { data } = await db
+    .from('interactions')
+    .select('id, contenu, canal, prospect_id, profiles!auteur_id(nom), prospects(id, nom)')
+    .ilike('contenu', `%${query}%`)
+    .limit(5);
+  return data ?? [];
+}

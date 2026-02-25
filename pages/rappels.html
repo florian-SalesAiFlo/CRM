@@ -1,6 +1,7 @@
 <!-- ========================================================
-     pages/rappels.html — Page rappels globale
-     Pas de <script> ici. JS : js/rappels-page.js
+     pages/rappels.html — Vue globale des rappels
+     Chargé dans #app par router.js.
+     PAS de <script> ici. JS : js/rappels-page.js
      ======================================================== -->
 
 <div class="page-layout">
@@ -13,38 +14,202 @@
     </div>
   </header>
 
-  <!-- Filtres -->
-  <div class="filter-bar">
-    <div class="filter-group">
-      <select class="select-filter" id="rappels-filter-statut" aria-label="Filtrer par statut">
-        <option value="">Tous les statuts</option>
-        <!-- injecté par rappels-page.js -->
-      </select>
-    </div>
+  <!-- Badges retards par commercial -->
+  <div class="rappels-retards-wrap" id="rappels-retards">
+    <!-- Rempli par rappels-page.js → renderRetardsBadges() -->
   </div>
 
-  <!-- Liste rappels -->
-  <div class="page-body">
+  <!-- Barre de filtres -->
+  <div class="filter-bar">
+    <select id="rappels-filter-statut" class="filter-select" aria-label="Filtrer par statut">
+      <option value="">Tous les statuts</option>
+      <option value="planifie">Planifié</option>
+      <option value="effectue">Effectué</option>
+      <option value="reporte">Reporté</option>
+      <option value="annule">Annulé</option>
+    </select>
+
+    <select id="rappels-filter-commercial" class="filter-select" aria-label="Filtrer par commercial">
+      <!-- Rempli dynamiquement par rappels-page.js -->
+      <option value="">Tous les commerciaux</option>
+    </select>
+  </div>
+
+  <!-- Tableau -->
+  <div class="table-section">
     <div class="table-wrap">
       <table class="data-table" aria-label="Liste des rappels">
         <thead>
           <tr>
-            <th>Date</th>
+            <th>
+              <button id="rappels-sort-date" class="sort-btn" aria-label="Trier par date">
+                Date ▲
+              </button>
+            </th>
             <th>Prospect</th>
             <th>Motif</th>
             <th>Statut</th>
-            <th class="col-actions">Actions</th>
+            <th>Commercial</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="rappels-tbody">
-          <!-- Rempli par rappels-page.js -->
+          <tr><td colspan="6" class="empty-cell">Chargement…</td></tr>
         </tbody>
       </table>
-    </div>
-    <div id="rappels-empty" class="empty-state" style="display:none">
-      <div class="empty-state-icon">🔔</div>
-      <p>Aucun rappel trouvé</p>
     </div>
   </div>
 
 </div>
+
+<style>
+  /* ── Layout ── */
+  .page-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    background: var(--color-bg);
+  }
+
+  /* ── En-tête ── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-5) var(--space-6);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .page-header-left { display: flex; align-items: center; gap: var(--space-3); }
+  .page-title { font-size: var(--text-xl); font-weight: 700; letter-spacing: -.03em; color: var(--color-text); }
+
+  /* ── Retards badges ── */
+  .rappels-retards-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-danger-soft);
+    border-bottom: 1px solid var(--color-border);
+    min-height: 0;
+  }
+  .rappels-retards-wrap:empty { display: none; }
+
+  /* ── Filtres ── */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .filter-select {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  /* ── Tableau ── */
+  .table-section {
+    flex: 1;
+    padding: var(--space-4) var(--space-6) var(--space-6);
+    overflow: auto;
+  }
+  .table-wrap {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+  .data-table th {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    background: var(--color-surface-alt);
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text);
+    vertical-align: middle;
+  }
+  .data-table td a { color: var(--color-primary); text-decoration: none; font-weight: 500; }
+  .data-table td a:hover { text-decoration: underline; }
+  .td-truncate { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .empty-cell { text-align: center; color: var(--color-text-tertiary); padding: var(--space-8) !important; }
+  .col-actions { white-space: nowrap; }
+
+  /* ── Tri ── */
+  .sort-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    padding: 0;
+  }
+  .sort-btn:hover { color: var(--color-primary); }
+
+  /* ── Ligne en retard ── */
+  .rappel-retard td { background: var(--color-danger-soft); }
+
+  /* ── Actions ── */
+  .row-actions { display: inline-flex; gap: var(--space-1); align-items: center; }
+  .row-action-btn {
+    width: 28px; height: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: var(--text-sm);
+    transition: background 0.15s, color 0.15s;
+  }
+  .row-action-btn:hover { background: var(--color-primary-soft); color: var(--color-primary); }
+
+  /* ── Reporter dropdown ── */
+  .reporter-wrap { position: relative; display: inline-flex; }
+  .reporter-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    min-width: 150px;
+    z-index: 50;
+    overflow: hidden;
+  }
+  .reporter-wrap.open .reporter-dropdown { display: block; }
+  .reporter-option {
+    display: block;
+    width: 100%;
+    padding: var(--space-2) var(--space-4);
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    color: var(--color-text);
+  }
+  .reporter-option:hover { background: var(--color-primary-soft); color: var(--color-primary); }
+
+  /* ── Badge sm ── */
+  .badge-sm { font-size: 10px; padding: 1px var(--space-1); }
+</style>
