@@ -203,10 +203,12 @@ body {
 /* ── Main content ─────────────────────────────────────────── */
 .main-content {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
 }
 
 /* ── Sidebar collapsed body class ─────────────────────────── */
