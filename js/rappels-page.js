@@ -138,7 +138,7 @@ function buildRow(r, today) {
 
   return `<tr class="rappel-row${retard ? ' rappel-retard' : ''}">
     <td>${date}${retard ? ' <span class="badge badge-danger badge-sm">Retard</span>' : ''}</td>
-    <td><a href="#/prospect/${prosId}">${esc(prosNom)}</a></td>
+    <td><a href="#/prospects/${prosId}">${esc(prosNom)}</a></td>
     <td class="td-truncate">${esc(r.motif ?? '—')}</td>
     <td>${st ? `<span class="badge badge-${st.badgeType}">${st.label}</span>` : '—'}</td>
     <td>${esc(commercial)}</td>
