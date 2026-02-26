@@ -19,13 +19,14 @@ let _dropdown      = null;
 // ── Init ──────────────────────────────────────────────────
 
 /**
- * Attache le listener de recherche sur #sidebar-search-input.
+ * Attache le listener de recherche sur #global-search-input.
  * Crée le dropdown résultats et gère la fermeture.
  */
 export function initSearch() {
-  const input = document.getElementById('sidebar-search-input');
+  const input = document.getElementById('global-search-input');
   if (!input) return;
 
+  // Le dropdown est créé dans .top-header-search (position: relative)
   _dropdown = createDropdown(input);
 
   input.addEventListener('input', e => {
@@ -172,8 +173,7 @@ function buildContactItem(c) {
 function buildInteractionItem(i) {
   const preview = (i.contenu ?? '').slice(0, 60) + (i.contenu?.length > 60 ? '…' : '');
   const parent  = i.prospects?.nom ?? '';
-  const auteur  = i.profiles?.nom ?? '';
-  const sub     = [auteur, parent ? `chez ${parent}` : ''].filter(Boolean).join(' · ');
+  const sub     = [i.auteur, parent ? `chez ${parent}` : ''].filter(Boolean).join(' · ');
   return `<button class="search-item" data-href="#/prospect/${i.prospect_id}" role="option">
     <span class="search-item-main">${esc(preview || '(sans contenu)')}</span>
     ${sub ? `<span class="search-item-sub">${esc(sub)}</span>` : ''}
@@ -190,7 +190,7 @@ function bindResultClicks() {
     if (!item?.dataset.href) return;
     window.location.hash = item.dataset.href.replace('#', '');
     hideDropdown();
-    const input = document.getElementById('sidebar-search-input');
+    const input = document.getElementById('global-search-input');
     if (input) input.value = '';
   });
 }

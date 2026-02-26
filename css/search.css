@@ -1,30 +1,26 @@
 /* =======================================================
-   search.css — Dropdown recherche globale sidebar
-   Complément de layout.css pour le composant #sidebar-search.
+   search.css — Dropdown recherche globale (header)
+   Positionné sous le champ de recherche dans .top-header.
    ======================================================= */
-
-/* Conteneur relatif de l'input */
-.sidebar-search {
-  position: relative;
-}
 
 /* Dropdown */
 .search-dropdown {
   position: absolute;
   top: calc(100% + var(--space-1));
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   z-index: 200;
-  max-height: 400px;
+  max-height: 420px;
   overflow-y: auto;
 }
 
 .search-dropdown[hidden] { display: none; }
 
-/* Section */
+/* Section header */
 .search-section-title {
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-xs);
@@ -49,6 +45,7 @@
   border-bottom: 1px solid var(--color-border);
   cursor: pointer;
   transition: background 0.1s;
+  font-family: var(--font-sans);
 }
 .search-item:last-child { border-bottom: none; }
 .search-item:hover { background: var(--color-primary-soft); }
