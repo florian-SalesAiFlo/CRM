@@ -218,8 +218,8 @@ body.sidebar-collapsed .main-content { /* no-op, flex handles it */ }
 .page-layout {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  overflow-y: auto;
   background: var(--color-bg);
 }
 
@@ -244,8 +244,8 @@ body.sidebar-collapsed .main-content { /* no-op, flex handles it */ }
 .detail-layout {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  overflow-y: auto;
   background: var(--color-bg);
 }
 
