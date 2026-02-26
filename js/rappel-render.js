@@ -90,7 +90,7 @@ export function renderRappels(rappels) {
   list.innerHTML = rappels.map(r => {
     const st      = STATUTS_RAPPEL.find(s => s.value === r.statut);
     const date    = new Date(r.date_rappel).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
-    const isFait  = r.statut === 'fait';
+    const isFait  = r.statut === 'effectue';
     const encoded = esc(JSON.stringify(r));
     const doneBtn = !isFait
       ? `<button class="row-action-btn row-action-done rappel-done" data-id="${esc(r.id)}" title="Marquer comme fait">${SVG.check}</button>`
@@ -157,9 +157,9 @@ export function bindRappelActions(prospectId, refresh) {
 
     if (doneBtn) {
       const { id } = doneBtn.dataset;
-      const { error } = await updateRappel(id, { statut: 'fait' });
+      const { error } = await updateRappel(id, { statut: 'effectue' });
       if (error) { toast(`Erreur : ${error.message}`, 'error'); return; }
-      toast('Rappel marqué comme fait.', 'success');
+      toast('Rappel marqué comme effectué.', 'success');
       refresh();
       return;
     }
