@@ -279,7 +279,7 @@ export async function fetchRappels(filters = {}) {
 
   let query = db
     .from('rappels')
-    .select('*, profiles!assigne_a(nom), prospects(nom)')
+    .select('*, profiles!assigne_a(nom), prospects(id, nom)')
     .order('date_rappel', { ascending: true });
 
   if (prospect_id) query = query.eq('prospect_id', prospect_id);
