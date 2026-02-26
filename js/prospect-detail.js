@@ -25,7 +25,10 @@ export async function initProspectDetail() {
   const id = window.CRM?.routeParams?.id;
   if (!id) { window.location.hash = '/prospects'; return; }
   document.getElementById('btn-back')
-    ?.addEventListener('click', () => { window.location.hash = '/prospects'; });
+    ?.addEventListener('click', () => {
+      if (window.history.length > 1) { window.history.back(); }
+      else { window.location.hash = '/prospects'; }
+    });
   await loadProspect(id);
 }
 
