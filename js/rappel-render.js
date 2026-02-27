@@ -105,17 +105,19 @@ function buildRappelItem(r) {
   let actionsHtml = '';
   if (isDone) {
     actionsHtml = `
-      <button class="rappel-action-btn rappel-undo" data-id="${esc(r.id)}" title="Remettre en planifié">↩ Annuler</button>
+      <button class="rappel-action-btn rappel-undo" data-id="${esc(r.id)}">↩ Annuler</button>
       <button class="rappel-action-btn rappel-action-delete rappel-delete"
-        data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}" title="Supprimer">🗑 Supprimer</button>`;
+        data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}">🗑</button>`;
   } else {
     actionsHtml = `
-      <button class="rappel-action-btn rappel-action-done rappel-done" data-id="${esc(r.id)}" title="Marquer effectué">✓ Fait</button>
-      ${reportBtn(esc(r.id))}
+      <button class="rappel-action-btn rappel-action-done rappel-done" data-id="${esc(r.id)}">✓ Fait</button>
+      <button class="rappel-pill rappel-report-pill" data-id="${esc(r.id)}" data-days="3">J+3</button>
+      <button class="rappel-pill rappel-report-pill" data-id="${esc(r.id)}" data-days="7">J+7</button>
+      <button class="rappel-pill rappel-report-pill" data-id="${esc(r.id)}" data-days="14">J+14</button>
       <button class="rappel-action-btn rappel-action-edit rappel-edit"
-        data-rappel='${encoded}' title="Modifier">✎ Modifier</button>
+        data-rappel='${encoded}'>✎</button>
       <button class="rappel-action-btn rappel-action-delete rappel-delete"
-        data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}" title="Supprimer">🗑</button>`;
+        data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}">🗑</button>`;
   }
 
   return `<div class="rappel-card${isDone ? ' rappel-card--done' : ''}">
@@ -158,25 +160,26 @@ export function bindRappelActions(prospectId, refresh) {
 
     if (_busy) return;
 
-    const reportOption = e.target.closest('.reporter-option');
+    // Pastilles reporter J+3 / J+7 / J+14
+    const pillBtn = e.target.closest('.rappel-report-pill');
+    if (pillBtn) {
+      _busy = true;
+      const { id, days } = pillBtn.dataset;
+      const d = new Date();
+      d.setDate(d.getDate() + parseInt(days));
+      const newDate = d.toISOString().slice(0, 10);
+      const { error } = await updateRappel(id, { date_rappel: newDate, statut: 'reporte' });
+      _busy = false;
+      if (error) { toast(`Erreur : ${error.message}`, 'error'); return; }
+      toast(`Reporté au ${newDate.slice(8,10)}/${newDate.slice(5,7)}.`, 'success');
+      refresh();
+      return;
+    }
+
     const doneBtn   = e.target.closest('.rappel-done');
     const undoBtn   = e.target.closest('.rappel-undo');
     const editBtn   = e.target.closest('.rappel-edit');
     const deleteBtn = e.target.closest('.rappel-delete');
-
-    if (reportOption) {
-      e.stopPropagation();
-      _busy = true;
-      const { id, option } = reportOption.dataset;
-      const newDate = calcDateReport(option);
-      closeAllReporters();
-      const { error } = await updateRappel(id, { date_rappel: newDate, statut: 'reporte' });
-      _busy = false;
-      if (error) { toast(`Erreur : ${error.message}`, 'error'); return; }
-      toast(`Reporté au ${fmtShort(newDate)}.`, 'success');
-      refresh();
-      return;
-    }
 
     if (doneBtn) {
       _busy = true;
