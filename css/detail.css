@@ -169,7 +169,11 @@
 
 /* Reporter dropdown dans le contexte carte */
 .rappel-card .reporter-wrap { position: relative; display: inline-flex; }
-.rappel-card .reporter-dropdown { bottom: 100%; right: 0; }
+.rappel-card .reporter-dropdown { top: 100%; bottom: auto; right: 0; }
+
+/* Permettre au dropdown de dépasser la section */
+#rappels-list { overflow: visible; }
+.detail-aside .detail-section { overflow: visible; }
 
 /* ── Info grid : reset du rule .info-field:nth-last-child ─── */
 /* On garde la grille 2 col de components.css, on améliore le spacing */

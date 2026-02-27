@@ -134,20 +134,21 @@ export function bindRappelActions(prospectId, refresh) {
   const list = document.getElementById('rappels-list');
   if (!list) return;
 
-  list.addEventListener('click', e => {
+  document.addEventListener('click', closeAllReporters);
+
+  list.addEventListener('click', async (e) => {
+    // Toggle dropdown reporter
     const reportTrigger = e.target.closest('.rappel-report');
     if (reportTrigger) {
+      e.stopPropagation();
       const wrap = reportTrigger.closest('.reporter-wrap');
       const isOpen = wrap.classList.contains('open');
       closeAllReporters();
       if (!isOpen) wrap.classList.add('open');
-      e.stopPropagation();
+      return;
     }
-  });
 
-  document.addEventListener('click', closeAllReporters);
-
-  list.addEventListener('click', async (e) => {
+    // Toggle effectués
     const toggleBtn = e.target.closest('.rappels-toggle-done');
     if (toggleBtn) {
       _showAll = !_showAll;
@@ -164,6 +165,7 @@ export function bindRappelActions(prospectId, refresh) {
     const deleteBtn = e.target.closest('.rappel-delete');
 
     if (reportOption) {
+      e.stopPropagation();
       _busy = true;
       const { id, option } = reportOption.dataset;
       const newDate = calcDateReport(option);
