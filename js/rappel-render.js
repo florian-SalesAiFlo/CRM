@@ -82,15 +82,15 @@ export function renderRappels(rappels) {
   let html = '';
 
   if (!visible.length && !_showAll) {
-    html = `<div class="empty-state" style="padding:1rem"><p style="font-size:var(--text-sm);color:var(--color-text-tertiary)">Tous les rappels sont effectués.</p></div>`;
+    html = `<p class="rappel-empty-msg">Tous les rappels sont effectués.</p>`;
   } else {
     html = visible.map(r => buildRappelItem(r)).join('');
   }
 
   if (effectues.length > 0) {
-    html += `<button class="btn btn-ghost btn-sm rappels-toggle-done" style="margin-top:8px;width:100%;font-size:var(--text-xs)">
-      ${_showAll ? 'Masquer effectués' : `Voir effectués (${effectues.length})`}
-    </button>`;
+    const icon = _showAll ? '▴' : '▾';
+    const label = _showAll ? 'Masquer effectués' : `Voir effectués (${effectues.length})`;
+    html += `<button class="rappels-toggle-done">${icon} ${label}</button>`;
   }
 
   list.innerHTML = html;
@@ -102,27 +102,29 @@ function buildRappelItem(r) {
   const isDone  = r.statut === 'effectue';
   const encoded = esc(JSON.stringify(r));
 
-  let actions = '';
+  let actionsHtml = '';
   if (isDone) {
-    actions = `
-      <button class="row-action-btn rappel-undo" data-id="${esc(r.id)}" title="Remettre en planifié">${SVG.undo}</button>
-      <button class="row-action-btn row-action-delete rappel-delete"
-        data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}" title="Supprimer">${SVG.delete}</button>`;
+    actionsHtml = `
+      <button class="rappel-action-btn rappel-undo" data-id="${esc(r.id)}" title="Remettre en planifié">↩ Annuler</button>
+      <button class="rappel-action-btn rappel-action-delete rappel-delete"
+        data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}" title="Supprimer">🗑 Supprimer</button>`;
   } else {
-    actions = `
-      <button class="row-action-btn row-action-done rappel-done" data-id="${esc(r.id)}" title="Marquer effectué">${SVG.check}</button>
+    actionsHtml = `
+      <button class="rappel-action-btn rappel-action-done rappel-done" data-id="${esc(r.id)}" title="Marquer effectué">✓ Fait</button>
       ${reportBtn(esc(r.id))}
-      <button class="row-action-btn row-action-edit rappel-edit"
-        data-rappel='${encoded}' title="Modifier">${SVG.edit}</button>
-      <button class="row-action-btn row-action-delete rappel-delete"
-        data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}" title="Supprimer">${SVG.delete}</button>`;
+      <button class="rappel-action-btn rappel-action-edit rappel-edit"
+        data-rappel='${encoded}' title="Modifier">✎ Modifier</button>
+      <button class="rappel-action-btn rappel-action-delete rappel-delete"
+        data-id="${esc(r.id)}" data-motif="${esc(r.motif ?? '')}" title="Supprimer">🗑</button>`;
   }
 
-  return `<div class="rappel-item${isDone ? ' rappel-fait' : ''}">
-    <div class="rappel-date">${date}</div>
-    <div class="rappel-motif">${esc(r.motif ?? '—')}</div>
-    ${st ? `<span class="badge badge-${st.badgeType}">${st.label}</span>` : '<span></span>'}
-    <span class="row-actions">${actions}</span>
+  return `<div class="rappel-card${isDone ? ' rappel-card--done' : ''}">
+    <div class="rappel-card-top">
+      <span class="rappel-card-date">${date}</span>
+      ${st ? `<span class="badge badge-${st.badgeType}">${st.label}</span>` : ''}
+    </div>
+    <div class="rappel-card-motif">${esc(r.motif ?? '—')}</div>
+    <div class="rappel-card-actions">${actionsHtml}</div>
   </div>`;
 }
 
@@ -191,7 +193,7 @@ export function bindRappelActions(prospectId, refresh) {
       const { error } = await updateRappel(id, { statut: 'planifie' });
       _busy = false;
       if (error) { toast(`Erreur : ${error.message}`, 'error'); return; }
-      toast('Rappel remis en planifié.', 'success');
+      toast('Remis en planifié.', 'success');
       refresh();
       return;
     }
