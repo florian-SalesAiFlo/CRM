@@ -108,13 +108,10 @@ export async function fetchProspectById(id) {
     .from('prospects')
     .select(`
       *,
-      sigle, tranche_effectif, type_etablissement, activite_principale,
-      date_creation, nom_gerant, prenom_gerant, sexe_gerant,
       profiles!commercial_id(id, nom, email),
       contacts(*),
       interactions(id, canal, created_at),
-      rappels(id, date_rappel, statut),
-      type_abo, statut_abo, date_debut_abo, date_fin_abo, tarif_mensuel, reabo_auto
+      rappels(id, date_rappel, statut)
     `)
     .eq('id', id)
     .single();
@@ -207,6 +204,20 @@ export async function updateContact(id, data) {
 export async function deleteContact(id) {
   const db = getClient();
   return db.from('contacts').delete().eq('id', id);
+}
+
+/**
+ * Recherche de contacts par nom/email.
+ * @param {string} query
+ * @returns {Promise<{data: Array, error: object|null}>}
+ */
+export async function searchContacts(query) {
+  const db = getClient();
+  return db
+    .from('contacts')
+    .select('*, prospects!prospect_id(id, nom)')
+    .or(`nom.ilike.%${query}%,email.ilike.%${query}%`)
+    .limit(10);
 }
 
 // ── Interactions ──────────────────────────────────────────
