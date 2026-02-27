@@ -108,6 +108,8 @@ export async function fetchProspectById(id) {
     .from('prospects')
     .select(`
       *,
+      sigle, tranche_effectif, type_etablissement, activite_principale,
+      date_creation, nom_gerant, prenom_gerant, sexe_gerant,
       profiles!commercial_id(id, nom, email),
       contacts(*),
       interactions(id, canal, created_at),
@@ -279,7 +281,7 @@ export async function fetchRappels(filters = {}) {
 
   let query = db
     .from('rappels')
-    .select('*, profiles!assigne_a(nom), prospects(id, nom)')
+    .select('*, profiles!assigne_a(nom), prospects(nom)')
     .order('date_rappel', { ascending: true });
 
   if (prospect_id) query = query.eq('prospect_id', prospect_id);
@@ -353,38 +355,4 @@ export async function updateRappel(id, data) {
 export async function deleteRappel(id) {
   const db = getClient();
   return db.from('rappels').delete().eq('id', id);
-}
-
-// ── Recherche globale ─────────────────────────────────────
-
-/**
- * Recherche des contacts par nom, prénom, email ou téléphone.
- * Retourne les contacts avec le nom du prospect parent.
- * @param {string} query
- * @returns {Promise<Array>}
- */
-export async function searchContacts(query) {
-  const db = getClient();
-  const { data } = await db
-    .from('contacts')
-    .select('id, nom, prenom, email, telephone, prospect_id, prospects(id, nom)')
-    .or(`nom.ilike.%${query}%,prenom.ilike.%${query}%,email.ilike.%${query}%,telephone.ilike.%${query}%`)
-    .limit(5);
-  return data ?? [];
-}
-
-/**
- * Recherche des interactions par contenu ou auteur.
- * Retourne les interactions avec le nom du prospect parent.
- * @param {string} query
- * @returns {Promise<Array>}
- */
-export async function searchInteractions(query) {
-  const db = getClient();
-  const { data } = await db
-    .from('interactions')
-    .select('id, contenu, canal, prospect_id, profiles!auteur_id(nom), prospects(id, nom)')
-    .ilike('contenu', `%${query}%`)
-    .limit(5);
-  return data ?? [];
 }

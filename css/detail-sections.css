@@ -1,0 +1,37 @@
+/* =======================================================
+   detail-sections.css — Styles sections fiche prospect
+   Nouvelles sections identité, coordonnées, dirigeant.
+   Lier dans index.html après detail.css.
+   ======================================================= */
+
+/* ── Sigle dans le header condensé ── */
+.detail-sigle {
+  font-size: var(--text-base);
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  margin-left: var(--space-1);
+}
+
+/* ── Sections info structurées ── */
+.info-section {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-5) 0;
+}
+.info-section:last-child { border-bottom: none; padding-bottom: 0; }
+
+.info-section-title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--space-3);
+}
+
+/* Grille 2 colonnes pour les champs d'une section */
+.info-grid-inner {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3) var(--space-6);
+}
+@media (max-width: 640px) { .info-grid-inner { grid-template-columns: 1fr; } }

@@ -115,8 +115,8 @@ export const ROLES_EMPLOYE = [
 // ou un fichier .env.local non versionné.
 
 export const SUPABASE_CONFIG = {
-  url:     'https://mlybcxtnnoupvwromwhf.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seWJjeHRubm91cHZ3cm9td2hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1OTkwMTcsImV4cCI6MjA4NzE3NTAxN30.r69K7wLWlVIlx2Hcmn194qUkT0Net7O6a_fj5mKWK8I',
+  url:    typeof SUPABASE_URL  !== 'undefined' ? SUPABASE_URL  : '',
+  anonKey: typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '',
 };
 
 // ── Helpers de lookup ─────────────────────────────────────
@@ -175,4 +175,36 @@ export const STATUTS_ABO = [
   { value: 'en_attente',  label: 'En attente',  badgeType: 'warning' },
   { value: 'expire',      label: 'Expiré',      badgeType: 'danger' },
   { value: 'resilie',     label: 'Résilié',     badgeType: 'danger' },
+];
+
+// ── Tranches d'effectif ───────────────────────────────────
+
+export const TRANCHES_EFFECTIF = [
+  { value: '',        label: '—',               badgeType: 'secondary' },
+  { value: '0',       label: '0 salarié',       badgeType: 'secondary' },
+  { value: '1-2',     label: '1 à 2 salariés',  badgeType: 'secondary' },
+  { value: '3-5',     label: '3 à 5 salariés',  badgeType: 'secondary' },
+  { value: '6-9',     label: '6 à 9 salariés',  badgeType: 'secondary' },
+  { value: '10-19',   label: '10 à 19 salariés', badgeType: 'info' },
+  { value: '20-49',   label: '20 à 49 salariés', badgeType: 'info' },
+  { value: '50-99',   label: '50 à 99 salariés', badgeType: 'primary' },
+  { value: '100-199', label: '100 à 199 salariés', badgeType: 'primary' },
+  { value: '200-499', label: '200 à 499 salariés', badgeType: 'success' },
+  { value: '500+',    label: '500 et plus',      badgeType: 'success' },
+];
+
+// ── Types établissement ───────────────────────────────────
+
+export const TYPES_ETABLISSEMENT = [
+  { value: '',           label: '—',          badgeType: 'secondary' },
+  { value: 'principal',  label: 'Principal',  badgeType: 'primary' },
+  { value: 'secondaire', label: 'Secondaire', badgeType: 'secondary' },
+];
+
+// ── Sexe gérant ───────────────────────────────────────────
+
+export const SEXES = [
+  { value: '', label: '—',     badgeType: 'secondary' },
+  { value: 'M', label: 'Homme', badgeType: 'info' },
+  { value: 'F', label: 'Femme', badgeType: 'info' },
 ];

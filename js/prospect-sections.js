@@ -4,7 +4,9 @@
    Export : renderContacts(contacts), renderTimeline(interactions)
    ======================================================= */
 
-import { getCanal, ROLES_EMPLOYE } from './config.js';
+import { getCanal, ROLES_EMPLOYE, TRANCHES_EFFECTIF, TYPES_ETABLISSEMENT, SEXES } from './config.js';
+import { badgeSelect } from './ui-components.js';
+import { editableField } from './prospect-inline-edit.js';
 
 // ── SVG partagés ──────────────────────────────────────────
 const SVG = {
@@ -104,3 +106,103 @@ function esc(str) {
   return String(str).replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+
+// ── Section Identité entreprise ───────────────────────────
+
+/**
+ * Génère le HTML de la section "Identité entreprise".
+ * @param {object} p - prospect
+ * @returns {string} HTML
+ */
+export function renderSectionIdentite(p) {
+  return `
+    <div class=\"info-field\">
+      <div class=\"info-label\">SIRET</div>
+      <div class=\"info-value\">${editableField('siret', formatSiret(p.siret), p.id)}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Sigle</div>
+      <div class=\"info-value\">${editableField('sigle', p.sigle, p.id)}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Type établissement</div>
+      <div class=\"info-value\">${badgeSelect('type_etablissement', TYPES_ETABLISSEMENT, p.type_etablissement ?? '')}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Effectif</div>
+      <div class=\"info-value\">${badgeSelect('tranche_effectif', TRANCHES_EFFECTIF, p.tranche_effectif ?? '')}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Activité (NAF)</div>
+      <div class=\"info-value\" id=\"field-activite-principale\">${esc(p.activite_principale ?? '—')}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Date de création</div>
+      <div class=\"info-value\">${editableField('date_creation', p.date_creation, p.id)}</div>
+    </div>`;
+}
+
+// ── Section Coordonnées ───────────────────────────────────
+
+/**
+ * Génère le HTML de la section "Coordonnées".
+ * @param {object} p - prospect
+ * @returns {string} HTML
+ */
+export function renderSectionCoordonnees(p) {
+  return `
+    <div class=\"info-field\">
+      <div class=\"info-label\">Téléphone</div>
+      <div class=\"info-value\">${editableField('telephone', p.telephone, p.id)}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Email</div>
+      <div class=\"info-value\">${editableField('email', p.email, p.id)}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Site web</div>
+      <div class=\"info-value\">${editableField('site_web', p.site_web, p.id)}</div>
+    </div>
+    <div class=\"info-field info-field--full\">
+      <div class=\"info-label\">Adresse</div>
+      <div class=\"info-value\">${editableField('adresse', p.adresse, p.id)}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Code postal</div>
+      <div class=\"info-value\">${editableField('code_postal', p.code_postal, p.id)}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Ville</div>
+      <div class=\"info-value\">${editableField('ville', p.ville, p.id)}</div>
+    </div>
+    <div class=\"info-field info-field--full\">
+      <div class=\"info-label\">Commentaire</div>
+      <div class=\"info-value\">${editableField('commentaire', p.commentaire, p.id)}</div>
+    </div>`;
+}
+
+// ── Section Dirigeant ─────────────────────────────────────
+
+/**
+ * Génère le HTML de la section "Dirigeant".
+ * @param {object} p - prospect
+ * @returns {string} HTML
+ */
+export function renderSectionGerant(p) {
+  return `
+    <div class=\"info-field\">
+      <div class=\"info-label\">Prénom</div>
+      <div class=\"info-value\">${editableField('prenom_gerant', p.prenom_gerant, p.id)}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Nom</div>
+      <div class=\"info-value\">${editableField('nom_gerant', p.nom_gerant, p.id)}</div>
+    </div>
+    <div class=\"info-field\">
+      <div class=\"info-label\">Sexe</div>
+      <div class=\"info-value\">${badgeSelect('sexe_gerant', SEXES, p.sexe_gerant ?? '')}</div>
+    </div>`;
+}
+
+/** Formate un SIRET : groupes de 3 chiffres séparés par espace. */
+function formatSiret(s) { return s ? s.replace(/(\d{3})(?=\d)/g, '$1 ') : null; }

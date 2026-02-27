@@ -6,8 +6,10 @@ import { fetchProspectById, fetchInteractions, fetchRappels, fetchContacts,
          deleteProspect, deleteContact, deleteInteraction, updateProspect } from './supabase-client.js';
 import { toast, badgeSelect } from './ui-components.js';
 import { openPanel, modal, closeModal } from './ui-panels.js';
-import { METIERS, STATUTS_PROSPECT, RETOURS_PROSPECT, VOLUMES_CANDIDATURES } from './config.js';
-import { renderContacts, renderTimeline } from './prospect-sections.js';
+import { METIERS, STATUTS_PROSPECT, RETOURS_PROSPECT, VOLUMES_CANDIDATURES,
+         TRANCHES_EFFECTIF, TYPES_ETABLISSEMENT, SEXES } from './config.js';
+import { renderContacts, renderTimeline,
+         renderSectionIdentite, renderSectionCoordonnees, renderSectionGerant } from './prospect-sections.js';
 import { renderRappels, bindRappelActions } from './rappel-render.js';
 import { editableField, bindEditableFields } from './prospect-inline-edit.js';
 import { renderAbonnement } from './prospect-abonnement.js';
@@ -25,10 +27,7 @@ export async function initProspectDetail() {
   const id = window.CRM?.routeParams?.id;
   if (!id) { window.location.hash = '/prospects'; return; }
   document.getElementById('btn-back')
-    ?.addEventListener('click', () => {
-      if (window.history.length > 1) { window.history.back(); }
-      else { window.location.hash = '/prospects'; }
-    });
+    ?.addEventListener('click', () => { window.location.hash = '/prospects'; });
   await loadProspect(id);
 }
 
@@ -54,7 +53,13 @@ async function loadProspect(id) {
 // ── Header condensé ───────────────────────────────────────
 function renderHeader(p) {
   const fill = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
-  fill('detail-nom', p.nom);
+
+  // Nom + sigle entre parenthèses
+  const nomEl = document.getElementById('detail-nom');
+  if (nomEl) {
+    nomEl.innerHTML = esc(p.nom)
+      + (p.sigle ? ` <span class="detail-sigle">(${esc(p.sigle)})</span>` : '');
+  }
 
   const badgesEl = document.getElementById('detail-badges');
   if (badgesEl) {
@@ -82,15 +87,8 @@ function renderHeader(p) {
   const commEl = document.getElementById('detail-commercial-label');
   if (commEl && p.profiles?.nom) commEl.textContent = p.profiles.nom;
 
-  const editBtn = document.getElementById('btn-edit-prospect');
-  if (editBtn) {
-    const fe = editBtn.cloneNode(true);
-    editBtn.replaceWith(fe);
-    fe.addEventListener('click', async () => {
-      const { initProspectEdit } = await import('./prospect-edit.js');
-      initProspectEdit(_prospect, () => loadProspect(_prospect.id));
-    });
-  }
+  // Bouton Modifier supprimé (Story 2) — seul Supprimer reste
+  document.getElementById('btn-edit-prospect')?.remove();
   bindDeleteButton(p);
 }
 
@@ -164,7 +162,7 @@ async function confirmDelete(prospect) {
 // ── Info grid ─────────────────────────────────────────────
 
 /**
- * Rend la grille d'information du prospect avec champs éditables inline.
+ * Rend les 3 sections d'information du prospect.
  * @param {object} p - données prospect
  */
 function renderInfoGrid(p) {
@@ -172,49 +170,35 @@ function renderInfoGrid(p) {
   if (!grid) return;
 
   grid.innerHTML = `
-    <div class="info-field">
-      <div class="info-label">Nom</div>
-      <div class="info-value">${esc(p.nom) || '—'}</div>
+    <div class="info-section">
+      <h3 class="info-section-title">Identité entreprise</h3>
+      <div class="info-grid-inner">
+        <div class="info-field">
+          <div class="info-label">Nom</div>
+          <div class="info-value">${editableField('nom', p.nom, p.id)}</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Métier</div>
+          <div class="info-value">${badgeSelect('metier', METIERS, p.metier ?? 'architecte')}</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Volume</div>
+          <div class="info-value">${badgeSelect('volume_candidatures', VOLUMES_CANDIDATURES, p.volume_candidatures ?? 'aucune_info')}</div>
+        </div>
+        ${renderSectionIdentite(p)}
+      </div>
     </div>
-    <div class="info-field">
-      <div class="info-label">SIRET</div>
-      <div class="info-value">${editableField('siret', p.siret, p.id)}</div>
+    <div class="info-section">
+      <h3 class="info-section-title">Coordonnées</h3>
+      <div class="info-grid-inner">
+        ${renderSectionCoordonnees(p)}
+      </div>
     </div>
-    <div class="info-field">
-      <div class="info-label">Métier</div>
-      <div class="info-value">${badgeSelect('metier', METIERS, p.metier ?? 'architecte')}</div>
-    </div>
-    <div class="info-field">
-      <div class="info-label">Volume</div>
-      <div class="info-value">${badgeSelect('volume_candidatures', VOLUMES_CANDIDATURES, p.volume_candidatures ?? 'aucune_info')}</div>
-    </div>
-    <div class="info-field">
-      <div class="info-label">Téléphone</div>
-      <div class="info-value">${editableField('telephone', p.telephone, p.id)}</div>
-    </div>
-    <div class="info-field">
-      <div class="info-label">Email</div>
-      <div class="info-value">${editableField('email', p.email, p.id)}</div>
-    </div>
-    <div class="info-field">
-      <div class="info-label">Site web</div>
-      <div class="info-value">${editableField('site_web', p.site_web, p.id)}</div>
-    </div>
-    <div class="info-field">
-      <div class="info-label">Adresse</div>
-      <div class="info-value">${editableField('adresse', p.adresse, p.id)}</div>
-    </div>
-    <div class="info-field">
-      <div class="info-label">Code postal</div>
-      <div class="info-value">${editableField('code_postal', p.code_postal, p.id)}</div>
-    </div>
-    <div class="info-field">
-      <div class="info-label">Ville</div>
-      <div class="info-value">${editableField('ville', p.ville, p.id)}</div>
-    </div>
-    <div class="info-field info-field--full">
-      <div class="info-label">Commentaire</div>
-      <div class="info-value">${editableField('commentaire', p.commentaire, p.id)}</div>
+    <div class="info-section">
+      <h3 class="info-section-title">Dirigeant</h3>
+      <div class="info-grid-inner">
+        ${renderSectionGerant(p)}
+      </div>
     </div>`;
 
   bindBadgeSelects(grid, p.id);
