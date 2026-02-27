@@ -30,11 +30,14 @@ export function renderContacts(contacts) {
   }
 
   tbody.innerHTML = contacts.map(c => {
-    const role    = ROLES_EMPLOYE.find(r => r.value === c.role_employe)?.label ?? '—';
+    const nomComplet = [c.prenom, c.nom].filter(Boolean).map(esc).join(' ') || '—';
+    const roleLabel  = c.role_employe === 'autre' && c.role_custom
+      ? c.role_custom
+      : (ROLES_EMPLOYE.find(r => r.value === c.role_employe)?.label ?? '—');
     const encoded = esc(JSON.stringify(c));
     return `<tr>
-      <td>${esc(c.nom)}</td>
-      <td>${esc(role)}</td>
+      <td>${nomComplet}</td>
+      <td><span class="badge badge-secondary">${esc(roleLabel)}</span></td>
       <td>${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '—'}</td>
       <td>${esc(c.telephone ?? '—')}</td>
       <td class="col-actions">
