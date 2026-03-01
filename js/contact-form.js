@@ -26,10 +26,10 @@ function esc(str) {
  */
 function renderForm(contact = null) {
   const v       = contact ?? {};
-  const isAutre = v.role_employe === 'autre';
+  const isAutre = v.role === 'autre';
 
   const roleOpts = ROLES_EMPLOYE.map(r =>
-    `<option value="${esc(r.value)}"${v.role_employe === r.value ? ' selected' : ''}>${esc(r.label)}</option>`
+    `<option value="${esc(r.value)}"${v.role === r.value ? ' selected' : ''}>${esc(r.label)}</option>`
   ).join('');
 
   return `
@@ -50,7 +50,7 @@ function renderForm(contact = null) {
 
       <div class="pf-field">
         <label class="pf-label" for="fc-role">Rôle</label>
-        <select class="pf-input" id="fc-role" name="role_employe">
+        <select class="pf-input" id="fc-role" name="role">
           <option value="">— Sélectionner —</option>
           ${roleOpts}
         </select>
@@ -153,7 +153,7 @@ function buildPayload(form) {
   return {
     prenom:       form.querySelector('#fc-prenom')?.value.trim()      || null,
     nom:          form.querySelector('#fc-nom')?.value.trim()          || null,
-    role_employe: roleValue,
+    role:         roleValue,
     role_custom:  isAutre ? (form.querySelector('#fc-role-custom')?.value.trim() || null) : null,
     email:        form.querySelector('#fc-email')?.value.trim()        || null,
     telephone:    form.querySelector('#fc-telephone')?.value.trim()    || null,

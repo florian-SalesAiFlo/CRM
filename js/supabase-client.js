@@ -276,6 +276,20 @@ export async function deleteInteraction(id) {
   return db.from('interactions').delete().eq('id', id);
 }
 
+/**
+ * Recherche d'interactions par contenu.
+ * @param {string} query
+ * @returns {Promise<{data: Array, error: object|null}>}
+ */
+export async function searchInteractions(query) {
+  const db = getClient();
+  return db
+    .from('interactions')
+    .select('*, prospects!prospect_id(id, nom)')
+    .ilike('contenu', `%${query}%`)
+    .limit(10);
+}
+
 // ── Rappels ───────────────────────────────────────────────
 
 /**
