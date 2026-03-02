@@ -31,9 +31,9 @@ export function renderContacts(contacts) {
 
   tbody.innerHTML = contacts.map(c => {
     const nomComplet = [c.prenom, c.nom].filter(Boolean).map(esc).join(' ') || '—';
-    const roleLabel  = c.role_employe === 'autre' && c.role_custom
+    const roleLabel  = c.role === 'autre' && c.role_custom
       ? c.role_custom
-      : (ROLES_EMPLOYE.find(r => r.value === c.role_employe)?.label ?? '—');
+      : (ROLES_EMPLOYE.find(r => r.value === c.role)?.label ?? '—');
     const encoded = esc(JSON.stringify(c));
     return `<tr>
       <td>${nomComplet}</td>
